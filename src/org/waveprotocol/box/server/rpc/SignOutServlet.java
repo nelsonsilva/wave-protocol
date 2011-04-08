@@ -24,6 +24,7 @@ import org.waveprotocol.box.server.authentication.SessionManager;
 
 import java.io.IOException;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +35,8 @@ import javax.servlet.http.HttpSession;
  *
  * @author josephg@gmail.com (Joseph Gentle)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class SignOutServlet extends HttpServlet {
   private final SessionManager sessionManager;
 

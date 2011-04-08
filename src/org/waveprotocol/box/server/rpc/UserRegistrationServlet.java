@@ -35,6 +35,7 @@ import org.waveprotocol.wave.util.logging.Log;
 import java.io.IOException;
 import java.util.Locale;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author josephg@gmail.com (Joseph Gentle)
  */
+@Singleton
 public final class UserRegistrationServlet extends HttpServlet {
   private final AccountStore accountStore;
   private final String domain;

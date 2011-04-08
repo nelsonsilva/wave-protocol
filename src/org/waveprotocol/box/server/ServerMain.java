@@ -18,13 +18,15 @@
 package org.waveprotocol.box.server;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.Module;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.ProxyServlet;
 import org.waveprotocol.box.common.comms.WaveClientRpc.ProtocolWaveClientRpc;
 import org.waveprotocol.box.server.authentication.AccountStoreHolder;
@@ -63,6 +65,15 @@ import org.waveprotocol.wave.model.wave.ParticipantIdUtil;
 import org.waveprotocol.wave.util.logging.Log;
 import org.waveprotocol.wave.util.settings.SettingsBinder;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 
 /**
  * Wave Server entrypoint.
@@ -75,6 +86,32 @@ public class ServerMain {
   private static final String PROPERTIES_FILE_KEY = "wave.server.config";
 
   private static final Log LOG = Log.get(ServerMain.class);
+
+  @SuppressWarnings("serial")
+  @Singleton
+  public static class GadgetProxyServlet extends HttpServlet {
+
+    ProxyServlet.Transparent proxyServlet;
+
+    @Inject
+    public GadgetProxyServlet(@Named(CoreSettings.GADGET_SERVER_HOSTNAME) String gadgetServerHostname,
+        @Named(CoreSettings.GADGET_SERVER_PORT) int gadgetServerPort){
+
+      LOG.info("Starting GadgetProxyServlet for " + gadgetServerHostname + ":" + gadgetServerPort);
+      proxyServlet = new ProxyServlet.Transparent("/gadgets", "http", gadgetServerHostname,
+          gadgetServerPort,"/gadgets");
+    }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+      proxyServlet.init(config);
+    }
+    
+    @Override
+    public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+      proxyServlet.service(req, res);
+    }
+  }
 
   public static void main(String... args) {
     try {
@@ -98,7 +135,7 @@ public class ServerMain {
 
     if (enableFederation) {
       Module federationSettings =
-        SettingsBinder.bindSettings(PROPERTIES_FILE_KEY, FederationSettings.class);
+          SettingsBinder.bindSettings(PROPERTIES_FILE_KEY, FederationSettings.class);
       // This MUST happen first, or bindings will fail if federation is enabled.
       settingsInjector = settingsInjector.createChildInjector(federationSettings);
     }
@@ -157,37 +194,32 @@ public class ServerMain {
   }
 
   private static void initializeServlets(Injector injector, ServerRpcProvider server) {
-    server.addServlet("/attachment/*", injector.getInstance(AttachmentServlet.class));
+    server.addServlet("/attachment/*", AttachmentServlet.class);
 
-    server.addServlet(SessionManager.SIGN_IN_URL,
-        injector.getInstance(AuthenticationServlet.class));
-    server.addServlet("/auth/signout", injector.getInstance(SignOutServlet.class));
-    server.addServlet("/auth/register", injector.getInstance(UserRegistrationServlet.class));
+    server.addServlet(SessionManager.SIGN_IN_URL, AuthenticationServlet.class);
+    server.addServlet("/auth/signout", SignOutServlet.class);
+    server.addServlet("/auth/register", UserRegistrationServlet.class);
 
-    server.addServlet("/fetch/*", injector.getInstance(FetchServlet.class));
-    
-    server.addServlet("/search/*", injector.getInstance(SearchServlet.class));
+    server.addServlet("/fetch/*", FetchServlet.class);
 
-    server.addServlet("/robot/dataapi", injector.getInstance(DataApiServlet.class));
-    server.addServlet(DataApiOAuthServlet.DATA_API_OAUTH_PATH + "/*",
-        injector.getInstance(DataApiOAuthServlet.class));
-    server.addServlet("/robot/dataapi/rpc", injector.getInstance(DataApiServlet.class));
-    server.addServlet("/robot/register/*", injector.getInstance(RobotRegistrationServlet.class));
-    server.addServlet("/robot/rpc", injector.getInstance(ActiveApiServlet.class));
+    server.addServlet("/search/*", SearchServlet.class);
 
-    String gadgetServerHostname =injector.getInstance(Key.get(String.class,
-        Names.named(CoreSettings.GADGET_SERVER_HOSTNAME)));
-    int gadgetServerPort =
-        injector.getInstance(Key.get(int.class, Names.named(CoreSettings.GADGET_SERVER_PORT)));
-    String gadgetServerPath =
-        injector.getInstance(Key.get(String.class, Names.named(CoreSettings.GADGET_SERVER_PATH)));
-    ProxyServlet.Transparent proxyServlet =
-        new ProxyServlet.Transparent("/gadgets", "http", gadgetServerHostname,gadgetServerPort,
-            gadgetServerPath);
-    ServletHolder proxyServletHolder = server.addServlet("/gadgets/*", proxyServlet);
-    proxyServletHolder.setInitParameter("HostHeader", gadgetServerHostname);
+    server.addServlet("/robot/dataapi", DataApiServlet.class);
+    server.addServlet(DataApiOAuthServlet.DATA_API_OAUTH_PATH + "/*", DataApiOAuthServlet.class);
+    server.addServlet("/robot/dataapi/rpc", DataApiServlet.class);
+    server.addServlet("/robot/register/*", RobotRegistrationServlet.class);
+    server.addServlet("/robot/rpc", ActiveApiServlet.class);
 
-    server.addServlet("/", injector.getInstance(WaveClientServlet.class));
+    String gadgetHostName =
+        injector
+            .getInstance(Key.get(String.class, Names.named(CoreSettings.GADGET_SERVER_HOSTNAME)));
+    int port =
+        injector.getInstance(Key.get(Integer.class, Names.named(CoreSettings.GADGET_SERVER_PORT)));
+    Map<String, String> initParams =
+        Collections.singletonMap("HostHeader", gadgetHostName + ":" + port);
+    server.addServlet("/gadgets/*", GadgetProxyServlet.class, initParams);
+
+    server.addServlet("/", WaveClientServlet.class);
   }
 
   private static void initializeRobots(Injector injector, WaveBus waveBus) {

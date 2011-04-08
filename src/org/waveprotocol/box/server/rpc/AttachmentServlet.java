@@ -18,6 +18,7 @@
 package org.waveprotocol.box.server.rpc;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import org.waveprotocol.box.server.persistence.AttachmentStore;
 import org.waveprotocol.box.server.persistence.AttachmentStore.AttachmentData;
@@ -32,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * An attachment servlet is a simple servlet that serves up attachments from a provided store.
  */
+@SuppressWarnings("serial")
+@Singleton
 public class AttachmentServlet extends HttpServlet {
   private static final Log LOG = Log.get(AttachmentServlet.class);
 

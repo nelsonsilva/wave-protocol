@@ -21,9 +21,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.servlet.GuiceFilter;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Descriptors.MethodDescriptor;
 import com.google.protobuf.Message;
@@ -63,8 +69,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.servlet.Servlet;
+import javax.annotation.Nullable;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContextListener;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -107,11 +120,11 @@ public class ServerRpcProvider {
     }
   }
 
-  class WebSocketConnection extends Connection {
+  static class WebSocketConnection extends Connection {
     private final WebSocketServerChannel socketChannel;
 
-    WebSocketConnection(ParticipantId loggedInUser) {
-      super(loggedInUser);
+    WebSocketConnection(ParticipantId loggedInUser, ServerRpcProvider provider) {
+      super(loggedInUser, provider);
       socketChannel = new WebSocketServerChannel(this);
       LOG.info("New websocket connection set up for user " + loggedInUser);
       expectMessages(socketChannel);
@@ -127,11 +140,11 @@ public class ServerRpcProvider {
     }
   }
 
-  class SocketIOConnection extends Connection {
+  static class SocketIOConnection extends Connection {
     private final SocketIOServerChannel socketChannel;
 
-    SocketIOConnection(ParticipantId loggedInUser) {
-      super(loggedInUser);
+    SocketIOConnection(ParticipantId loggedInUser, ServerRpcProvider provider) {
+      super(loggedInUser, provider);
       socketChannel = new SocketIOServerChannel(this);
       LOG.info("New websocket connection set up for user " + loggedInUser);
       expectMessages(socketChannel);
@@ -147,7 +160,7 @@ public class ServerRpcProvider {
     }
   }
 
-  abstract class Connection implements ProtoCallback {
+  static abstract class Connection implements ProtoCallback {
     private final Map<Integer, ServerRpcController> activeRpcs =
         new ConcurrentHashMap<Integer, ServerRpcController>();
 
@@ -157,17 +170,21 @@ public class ServerRpcProvider {
     // the field may be null on first connect and then set later using an RPC.
     private ParticipantId loggedInUser;
 
+    private final ServerRpcProvider provider;
+
     /**
      * @param loggedInUser The currently logged in user, or null if no user is
      *        logged in.
+     * @param provider
      */
-    public Connection(ParticipantId loggedInUser) {
+    public Connection(ParticipantId loggedInUser, ServerRpcProvider provider) {
       this.loggedInUser = loggedInUser;
+      this.provider = provider;
     }
 
     protected void expectMessages(MessageExpectingChannel channel) {
-      synchronized (registeredServices) {
-        for (RegisteredServiceMethod serviceMethod : registeredServices.values()) {
+      synchronized (provider.registeredServices) {
+        for (RegisteredServiceMethod serviceMethod : provider.registeredServices.values()) {
           channel.expectMessage(serviceMethod.service.getRequestPrototype(serviceMethod.method));
           LOG.fine("Expecting: " + serviceMethod.method.getFullName());
         }
@@ -178,8 +195,8 @@ public class ServerRpcProvider {
     protected abstract void sendMessage(int sequenceNo, Message message);
 
     private ParticipantId authenticate(String token) {
-      HttpSession session = sessionManager.getSessionFromToken(token);
-      ParticipantId user = sessionManager.getLoggedInUser(session);
+      HttpSession session = provider.sessionManager.getSessionFromToken(token);
+      ParticipantId user = provider.sessionManager.getLoggedInUser(session);
       return user;
     }
 
@@ -213,13 +230,13 @@ public class ServerRpcProvider {
         loggedInUser = authenticatedAs;
         LOG.info("Session authenticated as " + loggedInUser);
         sendMessage(sequenceNo, ProtocolAuthenticationResult.getDefaultInstance());
-      } else if (registeredServices.containsKey(message.getDescriptorForType())) {
+      } else if (provider.registeredServices.containsKey(message.getDescriptorForType())) {
         if (activeRpcs.containsKey(sequenceNo)) {
           throw new IllegalStateException(
               "Can't invoke a new RPC with a sequence number already in use.");
         } else {
           final RegisteredServiceMethod serviceMethod =
-              registeredServices.get(message.getDescriptorForType());
+              provider.registeredServices.get(message.getDescriptorForType());
 
           // Create the internal ServerRpcController used to invoke the call.
           final ServerRpcController controller =
@@ -244,7 +261,7 @@ public class ServerRpcProvider {
 
           // Kick off a new thread specific to this RPC.
           activeRpcs.put(sequenceNo, controller);
-          threadPool.execute(controller);
+          provider.threadPool.execute(controller);
         }
       } else {
         // Sent a message type we understand, but don't expect - erronous case!
@@ -304,7 +321,7 @@ public class ServerRpcProvider {
         .toArray(new String[0]), sessionManager, jettySessionManager);
   }
 
-  public void startWebSocketServer(Injector injector) {
+  public void startWebSocketServer(final Injector injector) {
     httpServer = new Server();
 
     List<SelectChannelConnector> connectors = getSelectChannelConnectors(httpAddresses);
@@ -318,22 +335,63 @@ public class ServerRpcProvider {
 
     context.setParentLoaderPriority(true);
     context.setAttribute(INJECTOR_ATTRIBUTE, injector);
-    
+
     if (jettySessionManager != null) {
       context.getSessionHandler().setSessionManager(jettySessionManager);
     }
     final ResourceCollection resources = new ResourceCollection(resourceBases);
     context.setBaseResource(resources);
 
+    addWebSocketServlets();
+
+    try {
+      final Injector parentInjector;
+
+      // If we have a null injector at least bind the ServerRpcProvider for nested static classes
+      if(injector==null) {
+        parentInjector = Guice.createInjector(new AbstractModule() {
+          @Override
+          protected void configure() {
+            bind(ServerRpcProvider.class).toInstance(ServerRpcProvider.this);
+          }
+        });
+      } else {
+        parentInjector = injector;
+      }
+
+      final ServletModule servletModule = getServletModule(parentInjector);
+
+      ServletContextListener contextListener = new GuiceServletContextListener() {
+        
+        private final Injector childInjector = parentInjector.createChildInjector(servletModule);
+        
+        @Override
+        protected Injector getInjector() {
+          return childInjector;
+        }
+      };
+
+      context.addEventListener(contextListener);
+      context.addFilter(GuiceFilter.class, "/*", 0);
+      httpServer.setHandler(context);
+
+      httpServer.start();
+
+    } catch (Exception e) { // yes, .start() throws "Exception"
+      LOG.severe("Fatal error starting http server.", e);
+      return;
+    }
+    LOG.fine("WebSocket server running.");
+  }
+
+  public void addWebSocketServlets() {
     // Servlet where the websocket connection is served from.
-    ServletHolder wsholder = new ServletHolder(new WaveWebSocketServlet());
-    context.addServlet(wsholder, "/socket");
+    ServletHolder wsholder = addServlet("/socket", WaveWebSocketServlet.class);
     // TODO(zamfi): fix to let messages span frames.
     wsholder.setInitParameter("bufferSize", "" + 1024 * 1024); // 1M buffer
 
     // Servlet where the websocket connection is served from.
-    ServletHolder sioholder = new ServletHolder(new WaveSocketIOServlet());
-    context.addServlet(sioholder, "/socket.io/*");
+    ServletHolder sioholder = addServlet("/socket.io/*", WaveSocketIOServlet.class );
     // TODO(zamfi): fix to let messages span frames.
     sioholder.setInitParameter("bufferSize", "" + 1024 * 1024); // 1M buffer
     // Set flash policy server parameters
@@ -364,26 +422,30 @@ public class ServerRpcProvider {
 
     // Serve the static content and GWT web client with the default servlet
     // (acts like a standard file-based web server).
-    ServletHolder defaultServlet = new ServletHolder(new DefaultServlet());
-    context.addServlet(defaultServlet, "/static/*");
-    context.addServlet(defaultServlet, "/webclient/*");
+    addServlet("/static/*", DefaultServlet.class);
+    addServlet("/webclient/*", DefaultServlet.class);
+  }
 
-    httpServer.setHandler(context);
+  public ServletModule getServletModule(final Injector injector) {
 
-    try {
-      httpServer.start();
-      // We add servlets here to override the DefaultServlet automatic registered by WebAppContext
-      // in path "/" with our WaveClientServlet. Any other way to do this?
-      // Related question (unanswered) http://web.archiveorange.com/archive/v/d0LdlXf1kN0OXyPNyQZp
-      for (Pair<String, ServletHolder> servlet : servletRegistry) {
-        context.addServlet(servlet.getSecond(), servlet.getFirst());
+    return new ServletModule() {
+      @Override
+      protected void configureServlets() {
+        // We add servlets here to override the DefaultServlet automatic registered by WebAppContext
+        // in path "/" with our WaveClientServlet. Any other way to do this?
+        // Related question (unanswered 08-Apr-2011)
+        // http://web.archiveorange.com/archive/v/d0LdlXf1kN0OXyPNyQZp
+        for (Pair<String, ServletHolder> servlet : servletRegistry) {
+          String url = servlet.getFirst();
+          @SuppressWarnings({"unchecked"})
+          Class<HttpServlet> clazz = servlet.getSecond().getHeldClass();
+          @SuppressWarnings({"unchecked"})
+          Map<String,String> params = servlet.getSecond().getInitParameters();
+          serve(url).with(clazz,params);
+          bind(clazz).in(Singleton.class);
+        }
       }
-      
-    } catch (Exception e) { // yes, .start() throws "Exception"
-      LOG.severe("Fatal error starting http server.", e);
-      return;
-    }
-    LOG.fine("WebSocket server running.");
+    };
   }
 
   private static InetSocketAddress[] parseAddressList(List<String> addressList) {
@@ -430,23 +492,66 @@ public class ServerRpcProvider {
     return list;
   }
 
-  public class WaveWebSocketServlet extends WebSocketServlet {
+  @SuppressWarnings("serial")
+  @Singleton
+  public static class WaveWebSocketServlet extends WebSocketServlet {
+
+    ServerRpcProvider provider;
+
+    @Inject
+    public WaveWebSocketServlet(ServerRpcProvider provider) {
+      super();
+      this.provider = provider;
+    }
+
     @Override
     protected WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-      ParticipantId loggedInUser = sessionManager.getLoggedInUser(request.getSession(false));
+      ParticipantId loggedInUser =
+          provider.sessionManager.getLoggedInUser(request.getSession(false));
 
-      WebSocketConnection connection = new WebSocketConnection(loggedInUser);
+      WebSocketConnection connection = new WebSocketConnection(loggedInUser, provider);
       return connection.getWebSocketServerChannel();
     }
   }
 
-  public class WaveSocketIOServlet extends SocketIOServlet {
-    @Override
-    protected SocketIOInbound doSocketIOConnect(HttpServletRequest request, String[] protocols) {
-      ParticipantId loggedInUser = sessionManager.getLoggedInUser(request.getSession(false));
+  @SuppressWarnings("serial")
+  @Singleton
+  public static class WaveSocketIOServlet extends HttpServlet {
 
-      SocketIOConnection connection = new SocketIOConnection(loggedInUser);
-      return connection.getWebSocketServerChannel();
+    ServerRpcProvider provider;
+
+    @Inject
+    public WaveSocketIOServlet(ServerRpcProvider provider) {
+      super();
+      this.provider = provider;
+    }
+
+    SocketIOServlet socketIOServlet = new SocketIOServlet() {
+      @Override
+      protected SocketIOInbound doSocketIOConnect(HttpServletRequest request, String[] strings) {
+        ParticipantId loggedInUser = provider.sessionManager.getLoggedInUser(
+            request.getSession(false));
+
+        SocketIOConnection connection = new SocketIOConnection(loggedInUser, provider);
+        return connection.getWebSocketServerChannel();
+      }
+    };
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+      socketIOServlet.init(config);
+    }
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+      socketIOServlet.service(req, resp);
+    }
+
+    @Override
+    public void service(ServletRequest req, ServletResponse res)
+        throws ServletException, IOException {
+      socketIOServlet.service(req, res);
     }
   }
 
@@ -495,13 +600,29 @@ public class ServerRpcProvider {
    * Add a servlet to the servlet registry. This servlet will be attached to the
    * specified URL pattern when the server is started up.
    *
-   * @param urlPattern URL pattern for paths. Eg, '/foo', '/foo/*'
-   * @param servlet The servlet object to bind to the specified paths
+   * @param urlPattern the URL pattern for paths. Eg, '/foo', '/foo/*'.
+   * @param servlet the servlet class to bind to the specified paths.
+   * @param initParams the map with init params, can be null or empty.
    * @return the {@link ServletHolder} that holds the servlet.
    */
-  public ServletHolder addServlet(String urlPattern, Servlet servlet) {
+  public ServletHolder addServlet(String urlPattern, Class<? extends HttpServlet> servlet,
+      @Nullable Map<String, String> initParams) {
     ServletHolder servletHolder = new ServletHolder(servlet);
+    if (initParams != null) {
+      servletHolder.setInitParameters(initParams);
+    }
     servletRegistry.add(new Pair<String, ServletHolder>(urlPattern, servletHolder));
     return servletHolder;
+  }
+  
+  /**
+   * Add a servlet to the servlet registry. This servlet will be attached to the
+   * specified URL pattern when the server is started up.
+   * @param urlPattern the URL pattern for paths. Eg, '/foo', '/foo/*'.
+   * @param servlet the servlet class to bind to the specified paths.
+   * @return the {@link ServletHolder} that holds the servlet.
+   */
+  public ServletHolder addServlet(String urlPattern, Class<? extends HttpServlet> servlet) {
+    return addServlet(urlPattern, servlet, null);
   }
 }

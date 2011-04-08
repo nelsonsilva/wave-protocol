@@ -19,14 +19,15 @@ package org.waveprotocol.box.server.rpc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.protobuf.MessageLite;
+import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.JsonRpcResponse;
 import com.google.wave.api.OperationQueue;
 import com.google.wave.api.OperationRequest;
 import com.google.wave.api.ProtocolVersion;
 import com.google.wave.api.SearchResult;
-import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.SearchResult.Digest;
 import com.google.wave.api.data.converter.EventDataConverterManager;
 
@@ -62,6 +63,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author vega113@gmail.com (Yuri Z.)
  */
 @SuppressWarnings("serial")
+@Singleton
 public final class SearchServlet extends HttpServlet {
 
   private static final Log LOG = Log.get(SearchServlet.class);

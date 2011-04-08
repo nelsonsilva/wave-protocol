@@ -38,6 +38,7 @@ import org.waveprotocol.wave.util.logging.Log;
 import java.io.IOException;
 import java.net.URI;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,6 +48,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ljvderijk@google.com (Lennard de Rijk)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class RobotRegistrationServlet extends HttpServlet {
 
   private static final String CREATE_PATH = "/create";

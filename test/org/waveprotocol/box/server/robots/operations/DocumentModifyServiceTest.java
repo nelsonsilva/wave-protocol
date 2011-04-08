@@ -18,7 +18,7 @@
 package org.waveprotocol.box.server.robots.operations;
 
 import com.google.common.collect.Lists;
-import com.google.inject.internal.Maps;
+import com.google.common.collect.Maps;
 import com.google.wave.api.Element;
 import com.google.wave.api.Gadget;
 import com.google.wave.api.InvalidRequestException;

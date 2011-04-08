@@ -48,6 +48,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.security.Principal;
 
+import javax.inject.Singleton;
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.Configuration;
@@ -64,6 +65,8 @@ import javax.servlet.http.HttpSession;
  *
  * @author josephg@gmail.com (Joseph Gentle)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class AuthenticationServlet extends HttpServlet {
   private static final String DEFAULT_REDIRECT_URL = "/";
   public static final String RESPONSE_STATUS_NONE = "NONE";
