@@ -1,0 +1,112 @@
+<module><inherits name="com.google.gwt.user.User" />
+<!-- This file is embedded into a gwt_module.
+     To use it, add a "deps" on
+     //third_party/java_src/wave/java/org/waveprotocol/wave/client/common/util:useragents
+
+     In general, last definitions win in GWT, so we import the things we're
+     going to redefine or extend first, and then redefine them.  Without that,
+     in particular ImmutableResourceBundle's default rule (witout data: URLs
+     would apply to us).  With that caveat, though, we only need to define
+     our extras; the built-in rules will do the rest.
+  -->
+
+<!-- We omit Opera, and add iphone and android, to the set of agents,
+     and replace the property provider with one that recognizeds them. -->
+<inherits name="com.google.gwt.user.UserAgent"/>
+
+<!-- Expand the list of allowed values -->
+<extend-property name="user.agent" values="iphone,android"/>
+
+<!-- Restrict to the set we use: we don't like opera (nor ie6, but that tag
+     is "ie 6 or 7", so we need to keep it; similarly gecko1_8 is ff2 (bad) and
+     ff3 (good), so we only keep gecko1_8.
+  -->
+<set-property name="user.agent" value="ie6,gecko1_8,safari,iphone,android"/>
+
+<property-provider name="user.agent"><![CDATA[
+    var ua = navigator.userAgent.toLowerCase();
+    var makeVersion = function(result) {
+      return (parseInt(result[1]) * 1000) + parseInt(result[2]);
+    };
+
+    if (ua.indexOf("android") != -1) {
+      return "android";
+    } else if (ua.indexOf("ipod") != -1 || ua.indexOf("iphone") != -1) {
+      return "iphone";
+    } else if (ua.indexOf("opera") != -1) {
+      return "opera";
+    } else if (ua.indexOf("webkit") != -1) {
+      return "safari";
+    } else if (ua.indexOf("msie") != -1) {
+      var result = /msie ([0-9]+)\.([0-9]+)/.exec(ua);
+      if (result && result.length == 3) {
+        if (makeVersion(result) >= 6000) {
+          return "ie6";
+        }
+      }
+    } else if (ua.indexOf("gecko") != -1) {
+      var result = /rv:([0-9]+)\.([0-9]+)/.exec(ua);
+      if (result && result.length == 3) {
+        if (makeVersion(result) >= 1008)
+          return "gecko1_8";
+        }
+      return "gecko";
+    }
+    return "unknown";
+  ]]></property-provider>
+
+
+<!-- In the (two, nearly identical!) DOM modules, we specify that iphone and
+     android should have the same deferred bindings as safari.  This is
+     additive, in that a miss here will fall through to the rules actually in
+     GWT, so we only need to add replace-withs for the new user agents. -->
+<inherits name="com.google.gwt.dom.DOM"/>
+<replace-with class="com.google.gwt.dom.client.DOMImplSafari">
+  <when-type-is class="com.google.gwt.dom.client.DOMImpl"/>
+  <any>
+    <when-property-is name="user.agent" value="iphone"/>
+    <when-property-is name="user.agent" value="android"/>
+  </any>
+</replace-with>
+
+<inherits name="com.google.gwt.user.DOM"/>
+<replace-with class="com.google.gwt.user.client.impl.DOMImplSafari">
+  <when-type-is class="com.google.gwt.user.client.impl.DOMImpl"/>
+  <any>
+    <when-property-is name="user.agent" value="iphone"/>
+    <when-property-is name="user.agent" value="android"/>
+  </any>
+</replace-with>
+
+
+<!-- Similarly for Resources.  This one is VERY order-dependent,
+     because the catch-all resource bundle is "stupid" (no data: URLs), and
+     relies on ordering to replace that default with "smarter" ones for
+     browsers which can do it.  But again, as long as we inherit the real one
+     first, ours only needs to cover the "extra" cases.  The rest of the
+     generate-with block is cribbed directly from ImmutableResource.gwt.xml.
+
+     Body cribbed from jar://third_party/java/gwt_incubator:gwt-incubator.jar!
+       com/google/gwt/resources/Resources.gwt.xml.
+
+     TODO(fabbott):
+ -->
+<inherits name="com.google.gwt.resources.Resources"/>
+<generate-with
+  class="com.google.gwt.resources.rebind.context.InlineClientBundleGenerator">
+
+  <!-- We have a number of conditions that must be satisfied -->
+  <all>
+    <!-- Is inlining enabled? -->
+    <when-property-is name="ClientBundle.enableInlining" value="true" />
+    <!-- Again, it's necessary to specify which types the generator runs on -->
+    <when-type-assignable
+      class="com.google.gwt.resources.client.ClientBundle" />
+    <!-- Only some browsers support RFC 2397 data: URLs -->
+    <any>
+      <when-property-is name="user.agent" value="iphone" />
+      <when-property-is name="user.agent" value="android" />
+    </any>
+  </all>
+</generate-with>
+</module>

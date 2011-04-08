@@ -1,0 +1,32 @@
+# Federation Configuration for the Wave in a Box server
+#
+
+# These will probably need to be changed
+xmpp_server_secret = opensesame
+certificate_private_key = ${wave_server_domain}.key
+
+# The order of certificates is important. Place intermediate certs
+# after "${wave_server_domain}.crt". Please refer to 
+# http://www.waveprotocol.org/federation/certificates
+# for more details.
+certificate_files = ${wave_server_domain}.crt
+
+# These should be okay to leave alone
+enable_federation = true
+certificate_domain = ${wave_server_domain}
+xmpp_component_name = wave
+xmpp_jid=wave.${wave_server_domain}
+xmpp_server_description = "Wave in a Box"
+xmpp_server_hostname = ${wave_server_domain}
+xmpp_server_port = 5275
+xmpp_server_ping = wavesandbox.com
+
+# Set XMPP_SERVER_IP to localhost if the XMPP and Wave in a Box servers are
+# running on the same host
+xmpp_server_ip = ${xmpp_server_hostname}
+
+# Set true to disable the verification of signed deltas
+waveserver_disable_verification = false
+
+# Set true to disable the verification of signers (certificates)
+waveserver_disable_signer_verification = false

@@ -1,0 +1,50 @@
+# This file is quite different from the .hgignore because that one is full of cruft.
+#
+# All entries in this file must have an explanation.
+
+# Server certificates
+/*.cert
+/*.crt
+/*.key
+
+# Server-specific configuration
+server.config
+server.federation.config
+
+# Mercurial
+.hg
+
+# Merge artifcats
+*.orig
+
+# Vim and Emacs
+*.swp
+*~
+
+# Mac
+.DS_Store
+
+# Eclipse
+/bin
+
+# Ant
+/build
+/build-proto.properties
+/dist
+/gen
+/junit*.properties
+
+# Testing (ant junit)
+test_out
+TEST-*\.xml
+
+# Web archive (build artifact)
+/war/org.waveprotocol.*
+/war/waveharness
+/war/webclient
+
+# Data stores
+/_accounts
+/_attachments
+/_certificates
+/_deltas
