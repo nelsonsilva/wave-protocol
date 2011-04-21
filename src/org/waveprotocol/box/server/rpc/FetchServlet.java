@@ -41,6 +41,7 @@ import org.waveprotocol.wave.util.logging.Log;
 
 import java.io.IOException;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -58,6 +59,8 @@ import javax.servlet.http.HttpServletResponse;
  *  The format of the returned information is the protobuf-JSON format used by
  * the websocket interface.
  */
+@SuppressWarnings("serial")
+@Singleton
 public final class FetchServlet extends HttpServlet {
   private static final Log LOG = Log.get(FetchServlet.class);
 

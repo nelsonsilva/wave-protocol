@@ -35,6 +35,8 @@ import org.waveprotocol.wave.client.wavepanel.impl.focus.FocusFramePresenter;
 import org.waveprotocol.wave.client.wavepanel.impl.indicator.ReplyIndicatorController;
 import org.waveprotocol.wave.client.wavepanel.impl.menu.MenuController;
 import org.waveprotocol.wave.client.wavepanel.impl.toolbar.EditToolbar;
+import org.waveprotocol.wave.client.wavepanel.impl.toolbar.ToolbarSwitcher;
+import org.waveprotocol.wave.client.wavepanel.impl.toolbar.ViewToolbar;
 import org.waveprotocol.wave.client.wavepanel.view.dom.ModelAsViewProvider;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipQueueRenderer;
 import org.waveprotocol.wave.client.widget.popup.PopupChromeFactory;
@@ -57,6 +59,8 @@ public interface StageThree {
 
   EditSession getEditSession();
 
+  ViewToolbar getViewToolbar();
+
   /**
    * Default implementation of the stage three configuration. Each component is
    * defined by a factory method, any of which may be overridden in order to
@@ -73,7 +77,8 @@ public interface StageThree {
 
     private Actions actions;
     private EditSession edit;
-    private EditToolbar toolbar;
+    private EditToolbar editToolbar;
+    private ViewToolbar viewToolbar;
 
     public DefaultProvider(StageTwo stageTwo) {
       this.stageTwo = stageTwo;
@@ -117,7 +122,12 @@ public interface StageThree {
 
     @Override
     public final EditToolbar getEditToolbar() {
-      return toolbar == null ? toolbar = createEditToolbar() : toolbar;
+      return editToolbar == null ? editToolbar = createEditToolbar() : editToolbar;
+    }
+
+    @Override
+    public final ViewToolbar getViewToolbar() {
+      return viewToolbar == null ? viewToolbar = createViewToolbar() : viewToolbar;
     }
 
     protected Actions createEditActions() {
@@ -146,8 +156,11 @@ public interface StageThree {
     }
 
     protected EditToolbar createEditToolbar() {
-      return EditToolbar.create(getStageTwo().getStageOne().getWavePanel(), getEditSession(),
-          getStageTwo().getSignedInUser());
+      return EditToolbar.create(getStageTwo().getSignedInUser());
+    }
+
+    protected ViewToolbar createViewToolbar() {
+      return ViewToolbar.create();
     }
 
     protected void install() {
@@ -164,7 +177,8 @@ public interface StageThree {
       Actions actions = getEditActions();
       EditSession edit = getEditSession();
       MenuController.install(actions, panel);
-      getEditToolbar().install();
+      ToolbarSwitcher.install(stageTwo.getStageOne().getWavePanel(), getEditSession(),
+          getViewToolbar(), getEditToolbar());
       ReplyIndicatorController.install(actions, edit, panel);
       EditController.install(focus, actions, panel);
       ParticipantController.install(panel, models, profiles);

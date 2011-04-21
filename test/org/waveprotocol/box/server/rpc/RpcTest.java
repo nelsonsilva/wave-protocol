@@ -17,6 +17,9 @@
 package org.waveprotocol.box.server.rpc;
 
 import com.google.common.collect.Lists;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
@@ -66,7 +69,13 @@ public class RpcTest extends TestCase {
     server =
         new ServerRpcProvider(new InetSocketAddress[] {new InetSocketAddress("localhost", 0)}, 0,
             new String[] {"./war"}, sessionManager, null);
-    server.startWebSocketServer(null);
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ServerRpcProvider.class).toInstance(server);
+      }
+    });
+    server.startWebSocketServer(injector);
   }
 
   @Override

@@ -73,7 +73,16 @@ public final class LiveSupplementRenderer extends ObservableSupplementedWave.Lis
       @Override
       public void apply(ConversationThread thread) {
         ThreadView threadUi = null;
-        if (thread.isInline()) {
+        
+        // NOTE: The isInline function had meaning when we had non-inline reply threads.  We
+        // don't have them at this point.  Right now if a thread has a parent blip, then it
+        // is an inline reply.  If not it must be a root thread.  Since the 'inline' attribute
+        // doesn't have official meaning we can't rely on it at this point.  It should probably
+        // be removed from the API, since it still exists, this note was left to explain why
+        // it is not being used here.
+        
+        // if (thread.isInline()) {
+        if (thread.getParentBlip() != null) {
           threadUi = views.getInlineThreadView(thread);
         } else {
           threadUi = views.getRootThreadView(thread);

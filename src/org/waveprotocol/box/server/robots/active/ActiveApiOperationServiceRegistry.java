@@ -28,6 +28,7 @@ import org.waveprotocol.box.server.robots.operations.FetchWaveService;
 import org.waveprotocol.box.server.robots.operations.NotifyOperationService;
 import org.waveprotocol.box.server.robots.operations.OperationService;
 import org.waveprotocol.box.server.robots.operations.ParticipantServices;
+import org.waveprotocol.box.server.robots.operations.WaveletSetTitleService;
 
 /**
  * A registry of {@link OperationService}s for the active robot API.
@@ -60,5 +61,6 @@ public final class ActiveApiOperationServiceRegistry extends AbstractOperationSe
     register(OperationType.ROBOT_CREATE_WAVELET, CreateWaveletService.create());
     register(OperationType.ROBOT_FETCH_WAVE, FetchWaveService.create());
     register(OperationType.DOCUMENT_MODIFY, DocumentModifyService.create());
+    register(OperationType.WAVELET_SET_TITLE, WaveletSetTitleService.create());
   }
 }

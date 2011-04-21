@@ -27,6 +27,7 @@ import org.waveprotocol.box.server.robots.operations.DocumentModifyService;
 import org.waveprotocol.box.server.robots.operations.NotifyOperationService;
 import org.waveprotocol.box.server.robots.operations.OperationService;
 import org.waveprotocol.box.server.robots.operations.ParticipantServices;
+import org.waveprotocol.box.server.robots.operations.WaveletSetTitleService;
 
 /**
  * Class for registering and accessing {@link OperationService} to execute
@@ -59,5 +60,6 @@ public final class OperationServiceRegistryImpl extends AbstractOperationService
         BlipOperationServices.create());
     register(OperationType.WAVELET_CREATE, CreateWaveletService.create());
     register(OperationType.DOCUMENT_MODIFY, DocumentModifyService.create());
+    register(OperationType.WAVELET_SET_TITLE, WaveletSetTitleService.create());
   }
 }

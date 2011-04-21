@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.wave.api.RobotSerializer;
 import com.google.wave.api.data.converter.EventDataConverterManager;
+
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
 import net.oauth.OAuthMessage;
@@ -36,6 +37,7 @@ import org.waveprotocol.wave.util.logging.Log;
 
 import java.io.IOException;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ljvderijk@google.com (Lennard de Rijk)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class DataApiServlet extends BaseApiServlet {
 
   private static final Log LOG = Log.get(DataApiServlet.class);

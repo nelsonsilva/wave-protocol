@@ -29,6 +29,7 @@ import org.waveprotocol.box.server.robots.operations.FetchWaveService;
 import org.waveprotocol.box.server.robots.operations.OperationService;
 import org.waveprotocol.box.server.robots.operations.ParticipantServices;
 import org.waveprotocol.box.server.robots.operations.SearchService;
+import org.waveprotocol.box.server.robots.operations.WaveletSetTitleService;
 
 /**
  * A registry of {@link OperationService}s for the data API.
@@ -61,5 +62,6 @@ public final class DataApiOperationServiceRegistry extends AbstractOperationServ
     register(OperationType.ROBOT_FETCH_WAVE, FetchWaveService.create());
     register(OperationType.DOCUMENT_MODIFY, DocumentModifyService.create());
     register(OperationType.ROBOT_SEARCH, searchService);
+    register(OperationType.WAVELET_SET_TITLE, WaveletSetTitleService.create());
   }
 }

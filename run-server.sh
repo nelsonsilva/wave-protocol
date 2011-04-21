@@ -5,7 +5,7 @@
 
 # Make sure the config file exists.
 if [ ! -e server.config ]; then
-  echo "You need to copy server.config.example to server.config and edit it."
+  echo "You need to copy server.config.example to server.config and edit it. Or run: 'ant -f server-config.xml' to generate the file automatically."
   exit 1
 fi
 

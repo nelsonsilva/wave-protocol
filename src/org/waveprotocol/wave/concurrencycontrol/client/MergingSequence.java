@@ -54,7 +54,7 @@ public class MergingSequence extends AbstractList<WaveletOperation> {
     }
   }
 
-  void optimise() {
+  public void optimise() {
     int startSize = size();
     if (startSize == 1) {
       return;

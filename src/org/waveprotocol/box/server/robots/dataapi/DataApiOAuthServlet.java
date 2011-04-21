@@ -46,6 +46,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Singleton;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +57,8 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ljvderijk@google.com (Lennard de Rijk)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class DataApiOAuthServlet extends HttpServlet {
 
   public static final String DATA_API_OAUTH_PATH = "/robot/dataapi/oauth";

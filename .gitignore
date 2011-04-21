@@ -6,6 +6,7 @@
 /*.cert
 /*.crt
 /*.key
+/*.pem
 
 # Server-specific configuration
 server.config
@@ -48,3 +49,6 @@ TEST-*\.xml
 /_attachments
 /_certificates
 /_deltas
+
+# Config backup files
+/*.old

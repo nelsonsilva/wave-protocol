@@ -153,8 +153,8 @@
 	
 	function validate() {
 	    var address = document.getElementById("address").value;
-	    if (address.length &lt; 2) {
-	        message = "Username portion of address cannot be less than 2 characters";
+	    if (address.length &lt; 1) {
+	        message = "Username portion of address cannot be empty";
 	        responseType = RESPONSE_STATUS_FAILED;
 	        handleResponse(responseType,message);
 	        return;

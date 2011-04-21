@@ -62,6 +62,9 @@ import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.waveref.WaveRef;
 
+import java.util.Date;
+import java.util.logging.Logger;
+
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
@@ -75,6 +78,10 @@ public class WebClient implements EntryPoint {
   private static final Binder BINDER = GWT.create(Binder.class);
 
   static Log LOG = Log.get(WebClient.class);
+  // Use of GWT logging is only intended for sending exception reports to the
+  // server, nothing else in the client should use java.util.logging.
+  // Please also see WebClientDemo.gwt.xml.
+  private static final Logger REMOTE_LOG = Logger.getLogger("REMOTE_LOG");
 
   private final ProfileManager profiles = new ProfileManagerImpl();
 
@@ -116,6 +123,7 @@ public class WebClient implements EntryPoint {
   /**
    * This is the entry point method.
    */
+  @Override
   public void onModuleLoad() {
 
     ErrorHandler.install();
@@ -183,7 +191,7 @@ public class WebClient implements EntryPoint {
           }
         };
     Search search = SimpleSearch.create(RemoteSearchService.create(), waveStore);
-    SearchPresenter searchUi = SearchPresenter.create(search, searchPanel, selectHandler);
+    SearchPresenter.create(search, searchPanel, selectHandler);
   }
 
   private void setupWavePanel() {
@@ -316,6 +324,7 @@ public class WebClient implements EntryPoint {
           @Override
           public void use(SafeHtml stack) {
             error.addDetail(stack, null);
+            REMOTE_LOG.severe(stack.asString().replace("<br>", "\n"));
           }
         });
       }
@@ -341,6 +350,8 @@ public class WebClient implements EntryPoint {
 
           Throwable error = t;
           while (error != null) {
+            String token = String.valueOf((new Date()).getTime());
+            stack.appendHtmlConstant("Token:  " + token + "<br> ");
             stack.appendEscaped(String.valueOf(error.getMessage())).appendHtmlConstant("<br>");
             for (StackTraceElement elt : error.getStackTrace()) {
               stack.appendHtmlConstant("  ")

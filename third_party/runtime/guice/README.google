@@ -1,11 +1,11 @@
 URL: http://code.google.com/p/google-guice/
-Version: 2.1-SNAPSHOT (rev. 1160)
+Version: 3.0
 License: Apache 2.0
 
 License File: LICENSE
 
 Description:
-Guice, and its component AssistedInject, allow dependency injection in a java-y way.
+Guice, and its components that allow dependency injection in a java-y way.
 
 Local Modifications:
 No modifications.

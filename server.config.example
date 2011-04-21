@@ -1,59 +1,79 @@
 # Core Configuration for the Wave in a Box server
-#
+# 
+# Run "ant -f server-config.xml" to generate the server.config file automatically.
+# To override default values pass them to the ant script. For example
+# to override wave_server_domain run: ant -f server-config.xml -Dwave_server_domain=example.com
+
 
 # Domain name of the wave server 
-wave_server_domain = local
+# Default value: local
+wave_server_domain = @WAVE_SERVER_DOMAIN@
 
 # A comma separated list of address on which to listen for connections.
 # Each address is a comma separated host:port pair.
-http_frontend_public_address = localhost:9898
-http_frontend_addresses = ${http_frontend_public_address}
+# Default value: localhost:9898
+http_frontend_public_address = @HTTP_FRONTEND_PUBLIC_ADDRESS@
+
+# Default value: values passed to http_frontend_public_address.
+http_frontend_addresses = @HTTP_FRONTEND_ADDRESSES@
+
 # A comma separated list of webApp source directories
-resource_bases = ./war
+# Default value: ./war
+resource_bases = @RESOURCE_BASES@
 
 ### Server-specific variables
 ###
 
 # Settings for the different persistence stores. Currently supported: memory, file, mongodb
-signer_info_store_type = memory
+# Default value: memory
+signer_info_store_type = @SIGNER_INFO_STORE_TYPE@
 
 # The location where signer info certificate data is stored on disk. This should be changed.
 # Note: This is only used when using the file signer info store. It is ignored
 # for other data store types.
-signer_info_store_directory = _certificates
+# Default value: _certificates
+signer_info_store_directory = @SIGNER_INFO_STORE_DIRECTORY@
 
 # Currently supported attachment types: mongodb, disk
-attachment_store_type = disk
+# Default value: disk
+attachment_store_type = @ATTACHMENT_STORE_TYPE@
 
 # The location where attachments are stored on disk. This should be changed.
 # Note: This is only used when using the disk attachment store. It is ignored
 # for other data store types.
-attachment_store_directory = _attachments
+attachment_store_directory = @ATTACHMENT_STORE_DIRECTORY@
 
 # Currently supported account store types: fake, memory, file, mongodb
-account_store_type = memory
+# Default value: memory
+account_store_type = @ACCOUNT_STORE_TYPE@
 
 # The location where accounts are stored on disk. This should be changed.
 # Note: This is only used when using the file account store. It is ignored
 # for other data store types.
-account_store_directory = _accounts
+# Default value: _accounts
+account_store_directory = @ACCOUNT_STORE_DIRECTORY@
 
 # Currently supported delta store types: memory, file
 # Note: file system support is experimental. Your server may crash. And the file format is
 # not stable and shouldn't be relied upon for long-term storage yet; upcoming changes will
 # require you to blow away your data.
-delta_store_type = memory
+# Default value: memory
+delta_store_type = @DELTA_STORE_TYPE@
 
 # The location where deltas are stored on disk. This should be changed.
 # Note: This is only used when using the file delta store. It is ignored
 # for other data store types.
-delta_store_directory = _deltas
+# Default value: _deltas
+delta_store_directory = @DELTA_STORE_DIRECTORY@
 
 # Set false to use raw WebSockets instead of Socket.IO (still a bit experimental) in the webclient
-use_socketio = true
+# Default value: true
+use_socketio = @USE_SOCKETIO@
 
-# To enable federation, edit the server.federation.config file and uncomment the line below
-#include = server.federation.config
+# To enable federation, edit the server.federation.config file and include it here.
+# Or run ant -f server-config.xml server-federation-config
+# If not using the server-config.xml ant script - it is possible just to comment the line.
+include = server.federation.config
 
 # These two parameters MUST appear in this file AFTER the above include of the
 # federation config file. This is necesary so that the federation config file

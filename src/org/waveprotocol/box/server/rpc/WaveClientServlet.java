@@ -40,6 +40,7 @@ import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.HashMap;
 
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,6 +52,8 @@ import javax.servlet.http.HttpSession;
  *
  * @author kalman@google.com (Benjamin Kalman)
  */
+@SuppressWarnings("serial")
+@Singleton
 public class WaveClientServlet extends HttpServlet {
 
   private static final Log LOG = Log.get(WaveClientServlet.class);

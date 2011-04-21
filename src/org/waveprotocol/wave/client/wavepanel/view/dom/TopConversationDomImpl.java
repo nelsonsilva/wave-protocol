@@ -90,9 +90,8 @@ public final class TopConversationDomImpl implements DomView {
   }
 
   public void setToolbar(Element toolbar) {
-    if (toolbar == null) {
-      getToolbarContainer().setInnerHTML("");
-    } else {
+    getToolbarContainer().setInnerHTML("");
+    if (toolbar != null) {
       getToolbarContainer().appendChild(toolbar);
     }
   }

@@ -2,11 +2,13 @@ syntax: glob
 *.cert
 *.crt
 *.key
+*.pem
 *.orig
 *.iml
 *.ipr
 *.iws
 *.swp
+*.old
 .DS_Store
 _accounts
 _attachments
@@ -28,3 +30,4 @@ TEST-*.xml
 war/org.waveprotocol.*
 war/waveharness
 war/webclient
+

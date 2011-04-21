@@ -42,9 +42,6 @@ import org.waveprotocol.wave.client.scheduler.BucketRateLimiter;
 import org.waveprotocol.wave.client.scheduler.CancellableCommand;
 import org.waveprotocol.wave.client.scheduler.SchedulerInstance;
 import org.waveprotocol.wave.client.scheduler.TimerService;
-import org.waveprotocol.wave.client.wavepanel.WavePanel;
-import org.waveprotocol.wave.client.wavepanel.impl.edit.EditSession;
-import org.waveprotocol.wave.client.wavepanel.view.BlipView;
 import org.waveprotocol.wave.client.widget.toolbar.SubmenuToolbarView;
 import org.waveprotocol.wave.client.widget.toolbar.ToolbarButtonViewBuilder;
 import org.waveprotocol.wave.client.widget.toolbar.ToolbarView;
@@ -66,7 +63,7 @@ import java.util.Iterator;
  *
  * @author kalman@google.com (Benjamin Kalman)
  */
-public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
+public class EditToolbar implements EditorUpdateListener {
 
   /**
    * Handler for click buttons added with {@link EditToolbar#addClickButton}.
@@ -305,19 +302,15 @@ public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
   }
 
   private final EditorToolbarResources.Css css;
-  private final WavePanel panel;
-  private final EditSession edit;
   private final ToplevelToolbarWidget toolbarUi;
   private final ParticipantId user;
 
   private final ButtonUpdater updater;
   private EditorContext editor;
 
-  private EditToolbar(EditorToolbarResources.Css css, WavePanel panel, EditSession edit,
-      ToplevelToolbarWidget toolbarUi, ButtonUpdater updater, ParticipantId user) {
+  private EditToolbar(EditorToolbarResources.Css css, ToplevelToolbarWidget toolbarUi,
+      ButtonUpdater updater, ParticipantId user) {
     this.css = css;
-    this.panel = panel;
-    this.edit = edit;
     this.toolbarUi = toolbarUi;
     this.updater = updater;
     this.user = user;
@@ -326,15 +319,15 @@ public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
   /**
    * Attaches editor behaviour to a toolbar, adding all the edit buttons.
    */
-  public static EditToolbar create(WavePanel panel, EditSession edit, ParticipantId user) {
+  public static EditToolbar create(ParticipantId user) {
     ToplevelToolbarWidget toolbarUi = new ToplevelToolbarWidget();
     EditorToolbarResources.Css css = EditorToolbarResources.Loader.res.css();
     TimerService timer = SchedulerInstance.getMediumPriorityTimer();
     ButtonUpdater updater = new ButtonUpdater(timer);
-    return new EditToolbar(css, panel, edit, toolbarUi, updater, user);
+    return new EditToolbar(css, toolbarUi, updater, user);
   }
 
-  public void install() {
+  public void init() {
     ToolbarView group = toolbarUi.addGroup();
     createBoldButton(group);
     createItalicButton(group);
@@ -368,16 +361,6 @@ public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
 
     group = toolbarUi.addGroup();
     createInsertGadgetButton(group, user);
-
-    if (edit.isEditing()) {
-      onSessionStart(edit.getEditor(), edit.getBlip());
-    }
-    edit.addListener(this);
-  }
-
-  public void destroy() {
-    edit.removeListener(this);
-    toolbarUi.removeFromParent();
   }
 
   private void createBoldButton(ToolbarView toolbar) {
@@ -674,15 +657,11 @@ public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
   //
 
   /**
-   * Attaches an editor to the toolbar.
+   * Starts listening to editor changes.
    */
-  @Override
-  public void onSessionStart(Editor editor, BlipView blipUi) {
+  public void enable(Editor editor) {
     Preconditions.checkState(this.editor == null);
     Preconditions.checkArgument(editor != null);
-
-    panel.getContents().setToolbar(toolbarUi.getElement());
-    panel.getGwtPanel().doAdopt(toolbarUi);
     this.editor = editor;
     this.editor.addUpdateListener(this);
     updater.enable();
@@ -690,23 +669,26 @@ public class EditToolbar implements EditorUpdateListener, EditSession.Listener {
   }
 
   /**
-   * Clears the editor from the toolbar.
+   * Stops listening to editor changes.
    */
-  @Override
-  public void onSessionEnd(Editor editor, BlipView blipUi) {
+  public void disable(Editor editor) {
     Preconditions.checkState(this.editor != null);
     Preconditions.checkArgument(this.editor == editor);
-
     updater.disable();
     this.editor.removeUpdateListener(this);
     this.editor = null;
-    panel.getGwtPanel().doOrphan(toolbarUi);
-    panel.getContents().setToolbar(null);
   }
 
   @Override
   public void onUpdate(EditorUpdateEvent event) {
     updateButtonStates();
+  }
+
+  /**
+   * @return the {@link ToplevelToolbarWidget} backing this toolbar.
+   */
+  public ToplevelToolbarWidget getWidget() {
+    return toolbarUi;
   }
 
   private void updateButtonStates() {
