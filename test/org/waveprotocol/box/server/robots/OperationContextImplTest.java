@@ -95,6 +95,7 @@ public class OperationContextImplTest extends TestCase {
     HashedVersion hashedVersionZero = HASH_FACTORY.createVersionZero(WAVELET_NAME);
     wavelet = new RobotWaveletData(waveletData, hashedVersionZero);
 
+    when(waveletProvider.checkAccessPermission(WAVELET_NAME, PARTICIPANT)).thenReturn(true);
     CommittedWaveletSnapshot snapshotAndVersion = new CommittedWaveletSnapshot(
         waveletData, hashedVersionZero);
     when(waveletProvider.getSnapshot(WAVELET_NAME)).thenReturn(snapshotAndVersion);

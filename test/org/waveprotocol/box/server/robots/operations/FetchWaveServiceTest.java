@@ -17,16 +17,19 @@
 
 package org.waveprotocol.box.server.robots.operations;
 
+import static org.mockito.Mockito.when;
+
 import com.google.wave.api.InvalidRequestException;
+import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.JsonRpcResponse;
 import com.google.wave.api.OperationRequest;
-import com.google.wave.api.OperationType;
-import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.OperationRequest.Parameter;
+import com.google.wave.api.OperationType;
 
-import org.waveprotocol.box.server.robots.RobotsTestBase;
 import org.waveprotocol.box.server.robots.OperationContextImpl;
+import org.waveprotocol.box.server.robots.RobotsTestBase;
 import org.waveprotocol.box.server.robots.testing.OperationServiceHelper;
+import org.waveprotocol.box.server.waveserver.WaveletProvider;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
 
 /**
@@ -51,6 +54,8 @@ public class FetchWaveServiceTest extends RobotsTestBase {
         operationRequest(OperationType.ROBOT_FETCH_WAVE,
             Parameter.of(ParamsProperty.MESSAGE, message));
     OperationContextImpl context = helper.getContext();
+    WaveletProvider waveletProvider = helper.getWaveletProvider();
+    when(waveletProvider.checkAccessPermission(WAVELET_NAME, ALEX)).thenReturn(true);
 
     service.execute(operation, context, ALEX);
 
@@ -82,5 +87,4 @@ public class FetchWaveServiceTest extends RobotsTestBase {
       // expected
     }
   }
-
 }

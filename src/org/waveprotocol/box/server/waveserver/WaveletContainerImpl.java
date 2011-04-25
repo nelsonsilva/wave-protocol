@@ -64,7 +64,7 @@ abstract class WaveletContainerImpl implements WaveletContainer {
 
   private static final Log LOG = Log.get(WaveletContainerImpl.class);
 
-  private static final int AWAIT_LOAD_TIMEOUT_SECONDS = 10;
+  private static final int AWAIT_LOAD_TIMEOUT_SECONDS = 20;
 
   protected enum State {
     /** Everything is working fine. */
@@ -262,16 +262,12 @@ abstract class WaveletContainerImpl implements WaveletContainer {
       // If the wavelet is empty, everyone has access (to write the first delta).
       // TODO(soren): determine if off-domain participants should be denied access if empty
       ReadableWaveletData snapshot = waveletState.getSnapshot();
-      return participantId != null
-          && (snapshot == null
-              || snapshot.getParticipants().contains(participantId)
-              || (sharedDomainParticipantId != null
-                  && snapshot.getParticipants().contains(sharedDomainParticipantId)));
+      return WaveletDataUtil.checkAccessPermission(snapshot, participantId, sharedDomainParticipantId);
     } finally {
       releaseReadLock();
     }
   }
-
+  
   @Override
   public HashedVersion getLastCommittedVersion() throws WaveletStateException {
     awaitLoad();
@@ -505,6 +501,13 @@ abstract class WaveletContainerImpl implements WaveletContainer {
     }
   }
   
+  
+  
+  @Override
+  public ParticipantId getSharedDomainParticipant() {
+    return sharedDomainParticipantId;
+  }
+
   @Override
   public ParticipantId getCreator() {
     ReadableWaveletData snapshot = waveletState.getSnapshot();

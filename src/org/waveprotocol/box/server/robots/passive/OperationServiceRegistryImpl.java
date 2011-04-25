@@ -24,6 +24,7 @@ import org.waveprotocol.box.server.robots.AbstractOperationServiceRegistry;
 import org.waveprotocol.box.server.robots.operations.BlipOperationServices;
 import org.waveprotocol.box.server.robots.operations.CreateWaveletService;
 import org.waveprotocol.box.server.robots.operations.DocumentModifyService;
+import org.waveprotocol.box.server.robots.operations.FolderActionService;
 import org.waveprotocol.box.server.robots.operations.NotifyOperationService;
 import org.waveprotocol.box.server.robots.operations.OperationService;
 import org.waveprotocol.box.server.robots.operations.ParticipantServices;
@@ -61,5 +62,6 @@ public final class OperationServiceRegistryImpl extends AbstractOperationService
     register(OperationType.WAVELET_CREATE, CreateWaveletService.create());
     register(OperationType.DOCUMENT_MODIFY, DocumentModifyService.create());
     register(OperationType.WAVELET_SET_TITLE, WaveletSetTitleService.create());
+    register(OperationType.ROBOT_FOLDER_ACTION, FolderActionService.create());
   }
 }

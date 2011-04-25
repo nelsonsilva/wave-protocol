@@ -20,7 +20,6 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.user.client.Command;
 
 import org.waveprotocol.wave.client.account.ProfileManager;
-import org.waveprotocol.wave.client.account.impl.ProfileManagerImpl;
 import org.waveprotocol.wave.client.common.util.AsyncHolder;
 import org.waveprotocol.wave.client.common.util.ClientPercentEncoderDecoder;
 import org.waveprotocol.wave.client.common.util.CountdownLatch;
@@ -221,9 +220,13 @@ public interface StageTwo {
     private BlipQueueRenderer queueRenderer;
     private ModelAsViewProvider modelAsView;
     private DiffController diffController;
+    
+ // shared across other client components
+    private final ProfileManager profiles;
 
-    public DefaultProvider(StageOne stageOne) {
+    public DefaultProvider(StageOne stageOne, ProfileManager profiles) {
       this.stageOne = stageOne;
+      this.profiles = profiles;
     }
 
     /**
@@ -543,7 +546,7 @@ public interface StageTwo {
 
     /** @return the manager of user identities. Subclasses may override. */
     protected ProfileManager createProfileManager() {
-      return new ProfileManagerImpl();
+      return profiles;
     }
 
     /** @return the renderer of intrinsic blip state. Subclasses may override. */

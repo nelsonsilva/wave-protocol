@@ -83,7 +83,7 @@ public class WebClient implements EntryPoint {
   // Please also see WebClientDemo.gwt.xml.
   private static final Logger REMOTE_LOG = Logger.getLogger("REMOTE_LOG");
 
-  private final ProfileManager profiles = new ProfileManagerImpl();
+  private final ProfileManager profiles = new ProfileManagerImpl(Session.get().getDomain());
 
   @UiField
   SplitLayoutPanel splitPanel;

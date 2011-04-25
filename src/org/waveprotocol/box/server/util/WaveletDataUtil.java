@@ -20,6 +20,8 @@ package org.waveprotocol.box.server.util;
 import com.google.common.base.Preconditions;
 
 import org.waveprotocol.wave.model.document.util.EmptyDocument;
+import org.waveprotocol.wave.model.id.IdUtil;
+import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.WaveletName;
 import org.waveprotocol.wave.model.operation.OperationException;
 import org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
@@ -30,6 +32,7 @@ import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.BlipData;
 import org.waveprotocol.wave.model.wave.data.ObservableWaveletData;
 import org.waveprotocol.wave.model.wave.data.ReadableWaveletData;
+import org.waveprotocol.wave.model.wave.data.WaveViewData;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 import org.waveprotocol.wave.model.wave.data.impl.EmptyWaveletSnapshot;
 import org.waveprotocol.wave.model.wave.data.impl.ObservablePluggableMutableDocument;
@@ -39,6 +42,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 /**
  * Utility methods for {@link WaveletData}.
@@ -193,5 +198,38 @@ public final class WaveletDataUtil {
       WaveletData wavelet, String blipId, ParticipantId author, long time) {
     return wavelet.createDocument(blipId, author, Collections.<ParticipantId>singleton(author),
         EmptyDocument.EMPTY_DOCUMENT, time, time);
+  }
+  
+  /**
+   * @return true if the wave has conversational root wavelet.
+   */
+  public static boolean hasConversationalRootWavelet(@Nullable WaveViewData wave) {
+    if (wave == null) {
+      return false;
+    }
+    for (ObservableWaveletData waveletData : wave.getWavelets()) {
+      WaveletId waveletId = waveletData.getWaveletId();
+      if (IdUtil.isConversationRootWaveletId(waveletId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  /**
+   * Checks if the user has access to the wavelet.
+   * 
+   * @param snapshot the wavelet data.
+   * @param user the user that wants to access the wavelet.
+   * @param sharedDomainParticipantId the shared domain participant id.
+   * @return true if the user has access to the wavelet.
+   */
+  public static boolean checkAccessPermission(ReadableWaveletData snapshot, ParticipantId user,
+      ParticipantId sharedDomainParticipantId) {
+    return user != null
+    && (snapshot == null
+        || snapshot.getParticipants().contains(user)
+        || (sharedDomainParticipantId != null
+            && snapshot.getParticipants().contains(sharedDomainParticipantId)));
   }
 }

@@ -36,7 +36,7 @@ import com.google.inject.name.Named;
 import org.waveprotocol.box.common.ExceptionalIterator;
 import org.waveprotocol.box.server.CoreSettings;
 import org.waveprotocol.box.server.persistence.PersistenceException;
-import org.waveprotocol.box.server.robots.operations.SearchHelper;
+import org.waveprotocol.box.server.util.WaveletDataUtil;
 import org.waveprotocol.wave.model.id.IdUtil;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.id.WaveletId;
@@ -360,17 +360,25 @@ public class WaveMap implements SearchProvider {
      *
      * @param queryParams the query params.
      * @param queryType the filter for the query , i.e. 'with'.
+     * @param localDomain the local domain of the logged in user.
      * @return the participants list for the filter.
      * @throws InvalidParticipantAddress if participant id passed to the query is invalid.
      */
     static List<ParticipantId> buildValidatedParticipantIds(
         Map<QueryHelper.TokenQueryType, Set<String>> queryParams,
-        QueryHelper.TokenQueryType queryType) throws InvalidParticipantAddress {
+        QueryHelper.TokenQueryType queryType, String localDomain) throws InvalidParticipantAddress {
       Set<String> tokenSet = queryParams.get(queryType);
       List<ParticipantId> participants = null;
       if (tokenSet != null) {
         participants = Lists.newArrayListWithCapacity(tokenSet.size());
         for (String token : tokenSet) {
+          if (!token.isEmpty() && token.indexOf("@") == -1) {
+            // If no domain was specified, assume that the participant is from the local domain.
+            token = token + "@" + localDomain;
+          } else if (token.equals("@")) {
+            // "@" is a shortcut for the shared domain participant.
+            token = "@" + localDomain;
+          }
           ParticipantId otherUser = ParticipantId.of(token);
           participants.add(otherUser);
         }
@@ -586,11 +594,14 @@ public class WaveMap implements SearchProvider {
     List<ParticipantId> withParticipantIds = null;
     List<ParticipantId> creatorParticipantIds = null;
     try {
+      String localDomain = user.getDomain();
       // Build and validate.
       withParticipantIds =
-          QueryHelper.buildValidatedParticipantIds(queryParams, QueryHelper.TokenQueryType.WITH);
+          QueryHelper.buildValidatedParticipantIds(queryParams, QueryHelper.TokenQueryType.WITH,
+              localDomain);
       creatorParticipantIds =
-          QueryHelper.buildValidatedParticipantIds(queryParams, QueryHelper.TokenQueryType.CREATOR);
+          QueryHelper.buildValidatedParticipantIds(queryParams, QueryHelper.TokenQueryType.CREATOR,
+              localDomain);
     } catch (InvalidParticipantAddress e) {
       // Invalid address - stop and return empty search results.
       LOG.warning("Invalid participantId: " + e.getAddress() + " in query: " + query);
@@ -609,22 +620,27 @@ public class WaveMap implements SearchProvider {
         // TODO (Yuri Z.) This loop collects all the wavelets that match the
         // query, so the view is determined by the query. Instead we should
         // look at the user's wave view and determine if the view matches the query.
+        ParticipantId sharedDomainParticipantId = c.getSharedDomainParticipant();
         try {
+          // TODO (Yuri Z.) Need to explore how to avoid this copy, e.g., by
+          // moving parts of the matches() logic into a WaveletContainer method.
+          ObservableWaveletData wavelet = c.copyWaveletData();
           // Only filtering by participants is implemented for now.
-          if (!matches(c, user, withParticipantIds, creatorParticipantIds, isAllQuery)) {
+          if (!matches(wavelet, user, sharedDomainParticipantId, withParticipantIds,
+              creatorParticipantIds, isAllQuery)) {
             continue;
           }
           if (view == null) {
             view = WaveViewDataImpl.create(waveId);
           }
           // Just keep adding all the relevant wavelets in this wave.
-          view.addWavelet(c.copyWaveletData());
+          view.addWavelet(wavelet);
         } catch (WaveletStateException e) {
           LOG.warning("Failed to access wavelet " + c.getWaveletName(), e);
         }
       }
       // Filter out waves without conversational root wavelet from search result.
-      if (SearchHelper.hasConversationalRootWavelet(view)) {
+      if (WaveletDataUtil.hasConversationalRootWavelet(view)) {
         results.put(waveId, view);
       }
     }
@@ -647,40 +663,45 @@ public class WaveMap implements SearchProvider {
   }
 
   /**
-   * Verifies whether the wavelet matches the filter criteria
+   * Verifies whether the wavelet matches the filter criteria.
    *
-   * @param c the wavelet container
+   * @param wavelet the wavelet.
    * @param user the logged in user.
    * @param withList the list of participants to be used in 'with' filter.
    * @param creatorList the list of participants to be used in 'creator' filter.
    * @param isAllQuery true if the search results should include shared for this domain waves.
    */
-  private boolean matches(WaveletContainer c, ParticipantId user, List<ParticipantId> withList,
+  private boolean matches(ObservableWaveletData wavelet, ParticipantId user,
+      ParticipantId sharedDomainParticipantId, List<ParticipantId> withList,
       List<ParticipantId> creatorList, boolean isAllQuery) throws WaveletStateException {
-    // Filter by creator. This is the fastest check because c.getCreator doesn't
-    // take the WaveletContainer lock, so we perform it first.
+    // If it is user data wavelet for the user - return true.
+    if (IdUtil.isUserDataWavelet(wavelet.getWaveletId()) && wavelet.getCreator().equals(user)) {
+      return true;
+    }
+    // Filter by creator. This is the fastest check so we perform it first.
     for (ParticipantId creator : creatorList) {
-      if (!creator.equals(c.getCreator())) {
+      if (!creator.equals(wavelet.getCreator())) {
         // Skip.
         return false;
       }
     }
-    // The wavelet should have logged in user as participant for 'in:inbox' query.
-    if (!isAllQuery && !c.hasParticipant(user)) {
+    // The wavelet should have logged in user as participant for 'in:inbox'
+    // query.
+    if (!isAllQuery && !wavelet.getParticipants().contains(user)) {
       return false;
     }
     // Or if it is an 'all' query - then either logged in user or shared domain
     // participant should be present in the wave.
-    if (isAllQuery && !c.checkAccessPermission(user)) {
+    if (isAllQuery &&
+        !WaveletDataUtil.checkAccessPermission(wavelet, user, sharedDomainParticipantId)) {
       return false;
     }
     // If not returned 'false' above - then logged in user is either
     // explicit or implicit participant and therefore has access permission.
-    
-    // Now filter by 'with'. Since each c.hasParticipant call takes and releases
-    // the WaveletContainer lock, we perform this check in the last turn.
+
+    // Now filter by 'with'.
     for (ParticipantId otherUser : withList) {
-      if (!c.hasParticipant(otherUser)) {
+      if (!wavelet.getParticipants().contains(otherUser)) {
         // Skip.
         return false;
       }

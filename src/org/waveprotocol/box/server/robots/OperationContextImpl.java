@@ -212,24 +212,12 @@ public class OperationContextImpl implements OperationContext, OperationResults 
     RobotWaveletData wavelet = openedWavelets.get(waveletName);
     if (wavelet == null) {
       // Open a wavelet from the server
-      CommittedWaveletSnapshot snapshot;
-      try {
-        snapshot = waveletProvider.getSnapshot(waveletName);
-      } catch (WaveServerException e) {
-        LOG.severe("Wave server failure retrieving snapshot for wavelet " + waveletName);
-        throw new InvalidRequestException("Wavelet " + waveletName + " couldn't be retrieved");
-      }
-
+      CommittedWaveletSnapshot snapshot = getWaveletSnapshot(waveletName, participant);
       if (snapshot == null) {
         throw new InvalidRequestException("Wavelet " + waveletName + " couldn't be retrieved");
       }
 
       ObservableWaveletData obsWavelet = FACTORY.create(snapshot.snapshot);
-      if (!obsWavelet.getParticipants().contains(participant)) {
-        LOG.severe(
-            participant + " tried to open " + waveletName + " which it isn't participating in");
-        throw new InvalidRequestException("Wavelet " + waveletName + " couldn't be retrieved");
-      }
       wavelet = new RobotWaveletData(obsWavelet, snapshot.committedVersion);
       openedWavelets.put(waveletName, wavelet);
     }
@@ -340,5 +328,24 @@ public class OperationContextImpl implements OperationContext, OperationResults 
     Preconditions.checkState(
         !responses.containsKey(operationId), "Overwriting an existing response");
     responses.put(operationId, response);
+  }
+
+  /**
+   * Takes snapshot of a wavelet, checking access for the given participant.
+   *
+   * @return snapshot on success, null on failure
+   */
+  private CommittedWaveletSnapshot getWaveletSnapshot(WaveletName waveletName, ParticipantId participant) {
+    try {
+      if (!waveletProvider.checkAccessPermission(waveletName, participant)) {
+        LOG.severe(
+            participant + " tried to open " + waveletName + " which it isn't participating in");
+        return null;
+      }
+      return waveletProvider.getSnapshot(waveletName);
+    } catch (WaveServerException e) {
+      LOG.severe("Cannot access wavelet " + waveletName, e);
+      return null;
+    }
   }
 }

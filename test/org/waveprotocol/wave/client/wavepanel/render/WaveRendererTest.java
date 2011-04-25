@@ -52,7 +52,7 @@ public final class WaveRendererTest extends TestCase {
   protected void setUp() {
     ShallowBlipRenderer populator = mock(ShallowBlipRenderer.class);
     ObservableSupplementedWave supplement = mock(ObservableSupplementedWave.class);
-    ProfileManager profiles = new ProfileManagerImpl();
+    ProfileManager profiles = new ProfileManagerImpl("example.com");
     ThreadReadStateMonitor readMonitor = mock(ThreadReadStateMonitor.class);
 
     // Create a wave

@@ -105,7 +105,7 @@ public class ComponentPacketTransport implements Component, OutgoingPacketTransp
 
   @Override
   public String getDescription() {
-    return "Google Wave Server";
+    return "Wave in a Box Server";
   }
 
   @Override

@@ -17,8 +17,7 @@
 
 package org.waveprotocol.wave.client.editor.harness;
 
-import com.google.gwt.dev.util.Preconditions;
-
+import com.google.common.base.Preconditions;
 import org.waveprotocol.wave.client.editor.Editor;
 import org.waveprotocol.wave.client.editor.content.ContentDocument;
 import org.waveprotocol.wave.client.editor.content.DiffHighlightingFilter;

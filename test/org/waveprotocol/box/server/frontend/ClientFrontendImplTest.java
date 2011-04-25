@@ -123,7 +123,7 @@ public class ClientFrontendImplTest extends TestCase {
     when(waveletProvider.getWaveletIds(any(WaveId.class))).thenReturn(ImmutableSet.<WaveletId>of());
 
     WaveBus waveBus = mock(WaveBus.class);
-    clientFrontend = new ClientFrontendImpl(HASH_FACTORY, waveletProvider, "example.com");
+    clientFrontend = new ClientFrontendImpl(HASH_FACTORY, waveletProvider);
   }
 
   public void testCannotOpenWavesWhenNotLoggedIn() throws Exception {
@@ -156,7 +156,9 @@ public class ClientFrontendImplTest extends TestCase {
     CommittedWaveletSnapshot snapshot1 = provideWavelet(WN1);
     CommittedWaveletSnapshot snapshot2 = provideWavelet(WN2);
     when(waveletProvider.getWaveletIds(WAVE_ID)).thenReturn(ImmutableSet.of(W1, W2));
-
+    when(waveletProvider.checkAccessPermission(WN1, USER)).thenReturn(true);
+    when(waveletProvider.checkAccessPermission(WN2, USER)).thenReturn(true);
+    
     OpenListener listener = openWave(IdFilters.ALL_IDS);
     verify(listener).onUpdate(eq(WN1), eq(snapshot1), eq(DeltaSequence.empty()),
         eq(V0), isNullMarker(), any(String.class));
@@ -188,6 +190,7 @@ public class ClientFrontendImplTest extends TestCase {
   public void testReceivedDeltasSentToClient() throws Exception {
     CommittedWaveletSnapshot snapshot = provideWavelet(WN1);
     when(waveletProvider.getWaveletIds(WAVE_ID)).thenReturn(ImmutableSet.of(W1));
+    when(waveletProvider.checkAccessPermission(WN1, USER)).thenReturn(true);
 
     OpenListener listener = openWave(IdFilters.ALL_IDS);
     verify(listener).onUpdate(eq(WN1), eq(snapshot), eq(DeltaSequence.empty()),

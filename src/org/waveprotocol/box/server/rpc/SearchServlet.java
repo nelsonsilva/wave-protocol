@@ -161,8 +161,12 @@ public final class SearchServlet extends HttpServlet {
   @Override
   @VisibleForTesting
   protected void doGet(HttpServletRequest req, HttpServletResponse response) throws IOException {
-    SearchRequest searchRequest = SearchResponseUtils.parseSearchRequest(req, response);
     ParticipantId user = sessionManager.getLoggedInUser(req.getSession(false));
+    if (user == null) {
+      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+      return;
+    }
+    SearchRequest searchRequest = SearchResponseUtils.parseSearchRequest(req, response);
     SearchResponse searchResponse = performSearch(searchRequest, user);
     serializeObjectToServlet(searchResponse, response);
   }

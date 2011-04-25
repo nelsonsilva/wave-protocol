@@ -87,14 +87,22 @@ public final class ParticipantController {
    */
   private void handleAddButtonClicked(Element context) {
     ParticipantId p;
-    String address = Window.prompt("Add a participant: ", "joe@example.com");
+    String address = Window.prompt("Add a participant: ", "");
     if (address == null) {
       return;
     }
+    address = address.trim();
+    if (!address.isEmpty() &&  address.indexOf("@") == -1) {
+      // If no domain was specified, assume that the participant is from the local domain.
+      address = address + "@" + profiles.getLocalDomain();
+    } else if (address.equals("@")) {
+      // "@" is a shortcut for the shared domain participant.
+      address = address + profiles.getLocalDomain();
+    }
     try {
-      p = ParticipantId.of(address.trim());
+      p = ParticipantId.of(address);
     } catch (InvalidParticipantAddress e) {
-      Window.alert("Invalid address");
+      Window.alert("Invalid address: " + address);
       return;
     }
 

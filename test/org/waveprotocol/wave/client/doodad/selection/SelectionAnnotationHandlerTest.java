@@ -101,7 +101,7 @@ public class SelectionAnnotationHandlerTest extends TestCase {
     }
   }
 
-  ProfileManagerImpl profileManager = new ProfileManagerImpl();
+  ProfileManagerImpl profileManager = new ProfileManagerImpl("@example.com");
   AnnotationRegistry annotationRegistry = new AnnotationRegistryImpl();
   FakeTimerService painterTimer = new FakeTimerService();
   FakeTimerService handlerTimer = new FakeTimerService();

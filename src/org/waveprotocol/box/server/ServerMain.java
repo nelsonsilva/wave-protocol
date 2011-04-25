@@ -28,7 +28,6 @@ import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.ProxyServlet;
 import org.waveprotocol.box.common.comms.WaveClientRpc.ProtocolWaveClientRpc;
 import org.waveprotocol.box.server.authentication.AccountStoreHolder;
@@ -160,7 +159,7 @@ public class ServerMain {
     initializeServer(injector, domain);
     initializeServlets(injector, server);
     initializeRobots(injector, waveBus);
-    initializeFrontend(injector, server, waveBus, domain);
+    initializeFrontend(injector, server, waveBus);
     initializeFederation(injector);
 
     LOG.info("Starting server");
@@ -229,12 +228,12 @@ public class ServerMain {
   }
 
   private static void initializeFrontend(Injector injector, ServerRpcProvider server,
-      WaveBus waveBus, String waveDomain) throws WaveServerException {
+      WaveBus waveBus) throws WaveServerException {
     HashedVersionFactory hashFactory = injector.getInstance(HashedVersionFactory.class);
    
     WaveletProvider provider = injector.getInstance(WaveletProvider.class);
     ClientFrontend frontend =
-        ClientFrontendImpl.create(hashFactory, provider, waveBus, waveDomain);
+        ClientFrontendImpl.create(hashFactory, provider, waveBus);
 
     ProtocolWaveClientRpc.Interface rpcImpl = WaveClientRpcImpl.create(frontend, false);
     server.registerService(ProtocolWaveClientRpc.newReflectiveService(rpcImpl));

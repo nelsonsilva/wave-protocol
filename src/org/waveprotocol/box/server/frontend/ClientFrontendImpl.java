@@ -45,7 +45,6 @@ import org.waveprotocol.wave.model.operation.wave.WaveletOperation;
 import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.version.HashedVersionFactory;
 import org.waveprotocol.wave.model.wave.ParticipantId;
-import org.waveprotocol.wave.model.wave.ParticipantIdUtil;
 import org.waveprotocol.wave.model.wave.data.ReadableWaveletData;
 import org.waveprotocol.wave.util.logging.Log;
 
@@ -74,8 +73,6 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
 
   private final static AtomicInteger channel_counter = new AtomicInteger(0);
   
-  private ParticipantId sharedDomainParticipant = null;
-
   /** Information we hold in memory for each wavelet, including index wavelets. */
   private static class PerWavelet {
     private final HashedVersion version0;
@@ -97,10 +94,6 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
     synchronized void setCurrentVersion(HashedVersion version) {
       this.currentVersion = version;
     }
-
-    private boolean hasParticipant(ParticipantId participant) {
-      return participants.contains(participant);
-    }
   }
 
   @VisibleForTesting final Map<ParticipantId, UserManager> perUser;
@@ -113,11 +106,11 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
    * @throws WaveServerException if the server fails during initialisation
    */
   public static ClientFrontendImpl create(HashedVersionFactory hashedVersionFactory,
-      WaveletProvider waveletProvider, WaveBus wavebus, String waveDomain)
+      WaveletProvider waveletProvider, WaveBus wavebus)
       throws WaveServerException {
     
     ClientFrontendImpl impl =
-        new ClientFrontendImpl(hashedVersionFactory, waveletProvider, waveDomain);
+        new ClientFrontendImpl(hashedVersionFactory, waveletProvider);
 
     // Initialize index here until a separate index system exists.
     impl.initialiseAllWaves();
@@ -134,12 +127,8 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
    */
   @VisibleForTesting
   ClientFrontendImpl(final HashedVersionFactory hashedVersionFactory,
-      WaveletProvider waveletProvider, String waveDomain) {
+      WaveletProvider waveletProvider) {
     this.waveletProvider = waveletProvider;
-    // It is OK since the passed in wave domain is validated.
-    sharedDomainParticipant =
-        ParticipantIdUtil.makeUnsafeSharedDomainParticipantId(waveDomain);
-
     final MapMaker mapMaker = new MapMaker();
     perWavelet = mapMaker.makeComputingMap(new Function<WaveId, Map<WaveletId, PerWavelet>>() {
       @Override
@@ -197,7 +186,13 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
           userManager.subscribe(waveId, waveletIdFilter, channelId, openListener);
       LOG.info("Subscribed " + loggedInUser + " to " + waveId + " channel " + channelId);
 
-      Set<WaveletId> waveletIds = visibleWaveletsFor(subscription, loggedInUser);
+      Set<WaveletId> waveletIds;
+      try {
+        waveletIds = visibleWaveletsFor(subscription, loggedInUser);
+      } catch (WaveServerException e1) {
+        waveletIds = Sets.newHashSet();
+        LOG.warning("Failed to retrieve visible wavelets for " + loggedInUser, e1);
+      }
       for (WaveletId waveletId : waveletIds) {
         WaveletName waveletName = WaveletName.of(waveId, waveletId);
         // The WaveletName by which the waveletProvider knows the relevant deltas
@@ -481,14 +476,14 @@ public class ClientFrontendImpl implements ClientFrontend, WaveBus.Subscriber {
   }
 
   private Set<WaveletId> visibleWaveletsFor(WaveViewSubscription subscription,
-      ParticipantId loggedInUser) {
+      ParticipantId loggedInUser) throws WaveServerException {
     Set<WaveletId> visible = Sets.newHashSet();
     Set<Entry<WaveletId, PerWavelet>> entrySet =
         perWavelet.get(subscription.getWaveId()).entrySet();
     for (Entry<WaveletId, PerWavelet> entry : entrySet) {
+      WaveletName waveletName = WaveletName.of(subscription.getWaveId(), entry.getKey());
       if (subscription.includes(entry.getKey())
-          && (entry.getValue().hasParticipant(loggedInUser) || entry.getValue().hasParticipant(
-              sharedDomainParticipant))) {
+          && waveletProvider.checkAccessPermission(waveletName, loggedInUser)) {
         visible.add(entry.getKey());
       }
     }

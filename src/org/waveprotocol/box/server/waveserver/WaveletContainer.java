@@ -118,10 +118,19 @@ interface WaveletContainer {
    *         read this property without lock.
    */
   ParticipantId getCreator();
+  
+  /**
+   * This method doesn't acquire {@link WaveletContainer} lock since shared
+   * domain participant cannot change and therefore it is safe to concurrently
+   * read this property without lock.
+   * 
+   * @return the shared domain participant.
+   */
+  public ParticipantId getSharedDomainParticipant();
 
   /**
    * @return true if the wavelet is at version zero, i.e., has no delta history
    */
   boolean isEmpty() throws WaveletStateException;
-
+  
 }

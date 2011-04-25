@@ -33,6 +33,11 @@ public final class ProfileManagerImpl implements ProfileManager {
 
   private final StringMap<ProfileImpl> profiles = CollectionUtils.createStringMap();
   private final CopyOnWriteSet<ProfileListener> listeners = CopyOnWriteSet.create();
+  private final String localDomain;
+
+  public ProfileManagerImpl(String localDomain) {
+    this.localDomain = localDomain;
+  }
 
   @Override
   public ProfileImpl getProfile(ParticipantId participantId) {
@@ -64,5 +69,10 @@ public final class ProfileManagerImpl implements ProfileManager {
     for (ProfileListener listener : listeners) {
       listener.onProfileUpdated(profile);
     }
+  }
+
+  @Override
+  public String getLocalDomain() {
+    return localDomain;
   }
 }
