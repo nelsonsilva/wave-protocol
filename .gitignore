@@ -52,3 +52,6 @@ TEST-*\.xml
 
 # Config backup files
 /*.old
+
+# Maven
+target

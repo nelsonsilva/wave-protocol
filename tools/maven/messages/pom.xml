@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.waveprotocol.box</groupId>
+    <artifactId>messages</artifactId>
+    <version>0.3-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.waveprotocol.box</groupId>
+        <artifactId>waib-parent</artifactId>
+        <version>0.3-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <build>
+        <sourceDirectory>${project.build.directory}/generated-sources</sourceDirectory>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <property name="src.dir" value="${src.dir}"/>
+                                <property name="gen.dir" value="${project.build.directory}/generated-sources"/>
+
+                                <!-- Macro which compiles a set of PST message templates -->
+                                <macrodef name="pstmessage">
+                                    <attribute name="proto" description="Protocol buffer class file"/>
+                                    <sequential>
+                                        <runpst proto="@{proto}"
+                                                templates="${src.dir}/org/waveprotocol/pst/templates/api/api.st
+                   ${src.dir}/org/waveprotocol/pst/templates/builder/builder.st
+                   ${src.dir}/org/waveprotocol/pst/templates/pojo/pojo.st
+                   ${src.dir}/org/waveprotocol/pst/templates/jso/jso.st
+                   ${src.dir}/org/waveprotocol/pst/templates/util/util.st
+                   ${src.dir}/org/waveprotocol/pst/templates/gson/gson.st
+                   ${src.dir}/org/waveprotocol/pst/templates/proto/proto.st"
+                                                outputdir="${gen.dir}"/>
+                                    </sequential>
+                                </macrodef>
+
+                                <!-- Macro which runs the PST compiler.
+                          Don't use this directly, use pstmessage. -->
+                                <macrodef name="runpst">
+                                    <attribute name="proto" description="Protocol buffer class file"/>
+                                    <attribute name="templates" description="Template files"/>
+                                    <attribute name="outputdir" description="Output directory"/>
+                                    <sequential>
+                                        <java failonerror="true" fork="true" classname="org.waveprotocol.pst.PstMain"  classpathref="maven.compile.classpath">
+                                            <arg line="-d @{outputdir}"/>
+                                            <arg line="-f @{proto}"/>
+                                            <arg line="@{templates}"/>
+                                        </java>
+                                    </sequential>
+                                </macrodef>
+
+                                <pstmessage proto="org/waveprotocol/box/common/comms/WaveClientRpc.class"/>
+                                <pstmessage proto="org/waveprotocol/box/search/SearchProto.class"/>
+                                <pstmessage proto="org/waveprotocol/box/server/rpc/Rpc.class"/>
+                                <pstmessage proto="org/waveprotocol/wave/federation/Proto.class"/>
+                                <pstmessage proto="org/waveprotocol/wave/concurrencycontrol/ClientServer.class"/>
+                                <pstmessage proto="org/waveprotocol/wave/diff/Diff.class"/>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.waveprotocol.box</groupId>
+            <artifactId>proto-stringtemplate</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.waveprotocol.box</groupId>
+            <artifactId>wave</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.waveprotocol.box</groupId>
+            <artifactId>proto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

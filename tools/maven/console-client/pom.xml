@@ -1,0 +1,64 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.waveprotocol.box</groupId>
+    <artifactId>console-client</artifactId>
+
+    <parent>
+         <groupId>org.waveprotocol.box</groupId>
+        <artifactId>waib-parent</artifactId>
+        <version>0.3-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <build>
+        <sourceDirectory>${src.dir}</sourceDirectory>
+        <plugins>
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>org.waveprotocol.wave.examples.fedone.waveclient.console.ConsoleClient</mainClass>
+                                </manifest>
+                                <manifestEntries>
+                                    <Implementation-Title>Google Wave FedOne Console Client</Implementation-Title>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>1.3.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <finalName>fedone-client-console-${version}
+                                    </finalName>
+                                    <artifactSet>
+                                        <includes>
+                                            <include>com.google.collections:google-collections</include>
+                                            <include>com.google.inject.extensions:guice-assisted-inject</include>
+                                            <include>com.google.inject:guice</include>
+                                            <include>javax.inject:javax.inject</include>
+                                            <include>com.google.protobuf:protobuf-java</include>
+                                            <include>commons-cli:commons-cli</include>
+                                            <include>commons-codec:commons-codec</include>
+                                            <include>jline:jline</include>
+                                            <include>org.igniterealtime:whack</include>
+                                            <include>org.igniterealtime:xmpp</include>
+                                        </includes>
+                                    </artifactSet>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+    
+    </dependencies>
+</project>
