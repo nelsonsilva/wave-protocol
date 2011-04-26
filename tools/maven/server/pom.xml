@@ -54,7 +54,10 @@
                                 <echo message="${src.dir}"/>
                                 <echo message="${gen.dir}"/>
                                 <gxpc srcdir="${src.dir}" srcpaths="${src.dir}" destdir="${gen.dir}" target="org.waveprotocol.box.server.gxp" />
-
+                                <!-- TODO - Prevent copying to the source directory! -->
+                                <copy todir="${src.dir}">
+                                    <fileset dir="${gen.dir}" />
+                                </copy>
                             </tasks>
                         </configuration>
                         <goals>
@@ -170,6 +173,11 @@
         <dependency>
             <groupId>net.oauth.core</groupId>
             <artifactId>oauth-provider</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.oauth.core</groupId>
+            <artifactId>oauth</artifactId>
+            <version>20090825</version>
         </dependency>
         <dependency>
             <groupId>com.glines.socketio</groupId>

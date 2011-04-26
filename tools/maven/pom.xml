@@ -19,7 +19,7 @@
         <module>wave</module>
         <module>messages</module>
         <module>web-client</module>
-        <module>console-client</module>
+        <!--module>console-client</module-->
         <module>server</module>
     </modules>
     <build>

@@ -18,10 +18,11 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>org.waveprotocol.wave.examples.fedone.waveclient.console.ConsoleClient</mainClass>
+                                    <mainClass>org.waveprotocol.box.consoleclient
+                                        .ConsoleClient</mainClass>
                                 </manifest>
                                 <manifestEntries>
-                                    <Implementation-Title>Google Wave FedOne Console Client</Implementation-Title>
+                                    <Implementation-Title>Apache Wave Console Client</Implementation-Title>
                                 </manifestEntries>
                             </archive>
                         </configuration>
