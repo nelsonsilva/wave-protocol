@@ -48,20 +48,27 @@ public final class ParticipantController {
   private final DomAsViewProvider views;
   private final ModelAsViewProvider models;
   private final ProfileManager profiles;
+  private final String localDomain;
 
+  /**
+   * @param localDomain nullable. if provided, automatic suffixing will occur.
+   */
   ParticipantController(
-      DomAsViewProvider views, ModelAsViewProvider models, ProfileManager profiles) {
+      DomAsViewProvider views, ModelAsViewProvider models, ProfileManager profiles,
+      String localDomain) {
     this.views = views;
     this.models = models;
     this.profiles = profiles;
+    this.localDomain = localDomain;
   }
 
   /**
    * Builds and installs the participant control feature.
    */
-  public static void install(WavePanel panel, ModelAsViewProvider models, ProfileManager profiles) {
+  public static void install(WavePanel panel, ModelAsViewProvider models, ProfileManager profiles,
+      String localDomain) {
     ParticipantController controller =
-        new ParticipantController(panel.getViewProvider(), models, profiles);
+        new ParticipantController(panel.getViewProvider(), models, profiles, localDomain);
     controller.install(panel.getHandlers());
   }
 
@@ -92,13 +99,16 @@ public final class ParticipantController {
       return;
     }
     address = address.trim();
-    if (!address.isEmpty() &&  address.indexOf("@") == -1) {
-      // If no domain was specified, assume that the participant is from the local domain.
-      address = address + "@" + profiles.getLocalDomain();
-    } else if (address.equals("@")) {
-      // "@" is a shortcut for the shared domain participant.
-      address = address + profiles.getLocalDomain();
+    if (localDomain != null) {
+      if (!address.isEmpty() &&  address.indexOf("@") == -1) {
+        // If no domain was specified, assume that the participant is from the local domain.
+        address = address + "@" + localDomain;
+      } else if (address.equals("@")) {
+        // "@" is a shortcut for the shared domain participant.
+        address = address + localDomain;
+      }
     }
+
     try {
       p = ParticipantId.of(address);
     } catch (InvalidParticipantAddress e) {

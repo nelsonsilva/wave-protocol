@@ -1,8 +1,5 @@
 public $if(m.inner)$static$endif$ final class $m.javaType$ extends $m.name$Impl
-    // Note: fully-qualified path is required for GsonSerializable.
-    // An import of it is not resolved correctly from inner classes.
-    // This appears to be a javac bug.  The Eclipse compiler handles it fine.
-    implements org.waveprotocol.wave.communication.gson.GsonSerializable {
+    implements GsonSerializable {
 
   $m.nestedMessages: {nested|$class(m=nested)$}$
 

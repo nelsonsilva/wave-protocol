@@ -94,7 +94,7 @@ public class DataApiOAuthServlet extends HttpServlet {
     this.tokenContainer = tokenContainer;
     this.sessionManager = sessionManager;
     this.tokenGenerator = tokenGenerator;
-    this.xsrfTokens = new MapMaker().expiration(XSRF_TOKEN_TIMEOUT_HOURS, TimeUnit.HOURS).makeMap();
+    this.xsrfTokens = new MapMaker().expireAfterWrite(XSRF_TOKEN_TIMEOUT_HOURS, TimeUnit.HOURS).makeMap();
   }
 
   @Override

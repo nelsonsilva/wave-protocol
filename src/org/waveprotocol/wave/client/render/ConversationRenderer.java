@@ -152,19 +152,14 @@ public final class ConversationRenderer {
   public void processBlip(ConversationBlip blip) {
     generator.startBlip(blip);
 
-    for (ConversationBlip.InlineReplyThread<? extends ConversationThread> inlineReply : blip
-        .getInlineReplyThreads()) {
+    for (ConversationBlip.LocatedReplyThread<? extends ConversationThread> inlineReply : blip
+        .locateReplyThreads()) {
       processInlineThread(inlineReply.getThread());
     }
 
     // process all the anchor to this blip
     for (Conversation privateReply : structure.getAnchoredConversations(blip)) {
       processConversation(privateReply);
-    }
-
-    // render reply thread
-    for (ConversationThread thread : blip.getReplyThreads()) {
-      processThread(thread);
     }
 
     generator.endBlip(blip);

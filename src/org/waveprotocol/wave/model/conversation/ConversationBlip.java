@@ -42,17 +42,18 @@ public interface ConversationBlip {
    * class is designed to be subclassed to provide a concrete thread type.
    *
    * We can't use a simple Pair for this due to restrictions in Java's generic
-   * type matching.
+   * type matching.  It should be noted that this class only provides the threads location at the
+   * point in time the object was created.  It is not updated as the document changes.
    */
-  class InlineReplyThread<T extends ConversationThread> {
+  class LocatedReplyThread<T extends ConversationThread> {
     private final T thread;
     private final int location;
 
-    public static <T extends ConversationThread> InlineReplyThread<T> of(T thread, int location) {
-      return new InlineReplyThread<T>(thread, location);
+    public static <T extends ConversationThread> LocatedReplyThread<T> of(T thread, int location) {
+      return new LocatedReplyThread<T>(thread, location);
     }
 
-    public InlineReplyThread(T thread, int location) {
+    public LocatedReplyThread(T thread, int location) {
       this.thread = thread;
       this.location = location;
     }
@@ -68,7 +69,7 @@ public interface ConversationBlip {
 
     @Override
     public String toString() {
-      return "InlineReplyThread(" + thread + " at " + location + ")";
+      return "LocatableReplyThread(" + thread + " at " + location + ")";
     }
 
     @Override
@@ -79,8 +80,8 @@ public interface ConversationBlip {
       if (o == null) {
         return false;
       }
-      if (o instanceof InlineReplyThread<?>) {
-        InlineReplyThread<?> other = (InlineReplyThread<?>) o;
+      if (o instanceof LocatedReplyThread<?>) {
+        LocatedReplyThread<?> other = (LocatedReplyThread<?>) o;
         return other.thread == thread && other.location == location;
       }
       return false;
@@ -109,13 +110,6 @@ public interface ConversationBlip {
   ConversationThread getReplyThread(String id);
 
   /**
-   * Gets the non-inline replies to this blip.
-   *
-   * The order of threads is consistent between multiple calls to this method.
-   */
-  Iterable<? extends ConversationThread> getReplyThreads();
-
-  /**
    * Gets the inline replies to this thread, with their locations in the blip
    * document. The replies are presented in increasing location order (any
    * with invalid locations are last).
@@ -123,13 +117,13 @@ public interface ConversationBlip {
    * Note that the reply locations are only valid for immediate use and must not
    * be stored.
    */
-  Iterable<? extends InlineReplyThread<? extends ConversationThread>> getInlineReplyThreads();
+  Iterable<? extends LocatedReplyThread<? extends ConversationThread>> locateReplyThreads();
 
   /**
    * Gets all reply threads to this blip, in the order defined by history of
    * appends.
    */
-  Iterable<? extends ConversationThread> getAllReplyThreads();
+  Iterable<? extends ConversationThread> getReplyThreads();
 
   /**
    * Creates a new reply thread to this blip, after any existing replies.

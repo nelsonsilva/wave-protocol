@@ -50,7 +50,7 @@ public final class SearchPresenter
   }
 
   /** How often to repeat the search query. */
-  private final static int POLLING_INTERVAL_MS = 10000; // 10s
+  private final static int POLLING_INTERVAL_MS = 15000; // 15s
   private final static String DEFAULT_SEARCH = "in:inbox";
   private final static int DEFAULT_PAGE_SIZE = 20;
 

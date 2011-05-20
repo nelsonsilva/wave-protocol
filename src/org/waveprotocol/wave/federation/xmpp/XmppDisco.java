@@ -87,7 +87,7 @@ public class XmppDisco {
     this.successExpirySecs = successExpirySecs;
 
     discoRequests =
-        new MapMaker().expiration(DISCO_EXPIRATION_HOURS, TimeUnit.HOURS).makeComputingMap(
+        new MapMaker().expireAfterWrite(DISCO_EXPIRATION_HOURS, TimeUnit.HOURS).makeComputingMap(
             new Function<String, RemoteDisco>() {
               @Override
               public RemoteDisco apply(String domain) {

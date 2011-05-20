@@ -130,49 +130,52 @@ public final class Snippets {
    * Returns a snippet or null.
    */
   public static String renderSnippet(final ReadableWaveletData wavelet,
-      final int maxSnippetLength) {
+ final int maxSnippetLength) {
+    final StringBuilder sb = new StringBuilder();
     ReadableBlipData blip = wavelet.getDocument(DocumentConstants.CONVERSATION);
     if (blip == null) {
       // Render whatever data we have and hope its good enough
-      return collateTextForWavelet(wavelet);
-    }
-
-    DocOp docOp = blip.getContent().asOperation();
-    final StringBuilder sb = new StringBuilder();
-    docOp.apply(InitializationCursorAdapter.adapt(new DocInitializationCursor() {
-      @Override
-      public void annotationBoundary(AnnotationBoundaryMap map) {
-      }
-
-      @Override
-      public void characters(String chars) {
-        // No chars in the conversation manifest
-      }
-
-      @Override
-      public void elementEnd() {
-      }
-
-      @Override
-      public void elementStart(String type, Attributes attrs) {
-        if (sb.length() >= maxSnippetLength) {
-          return;
+      sb.append(collateTextForWavelet(wavelet));
+    } else {
+      DocOp docOp = blip.getContent().asOperation();
+      docOp.apply(InitializationCursorAdapter.adapt(new DocInitializationCursor() {
+        @Override
+        public void annotationBoundary(AnnotationBoundaryMap map) {
         }
 
-        if (DocumentConstants.BLIP.equals(type)) {
-          String blipId = attrs.get(DocumentConstants.BLIP_ID);
-          if (blipId != null) {
-            ReadableBlipData document = wavelet.getDocument(blipId);
-            if (document == null) {
-              // We see this when a blip has been deleted
-              return;
+        @Override
+        public void characters(String chars) {
+          // No chars in the conversation manifest
+        }
+
+        @Override
+        public void elementEnd() {
+        }
+
+        @Override
+        public void elementStart(String type, Attributes attrs) {
+          if (sb.length() >= maxSnippetLength) {
+            return;
+          }
+
+          if (DocumentConstants.BLIP.equals(type)) {
+            String blipId = attrs.get(DocumentConstants.BLIP_ID);
+            if (blipId != null) {
+              ReadableBlipData document = wavelet.getDocument(blipId);
+              if (document == null) {
+                // We see this when a blip has been deleted
+                return;
+              }
+              sb.append(collateTextForDocuments(Arrays.asList(document)));
+              sb.append(" ");
             }
-            sb.append(collateTextForDocuments(Arrays.asList(document)));
-            sb.append(" ");
           }
         }
-      }
-    }));
+      }));
+    }
+    if (sb.length() > maxSnippetLength) {
+      return sb.substring(0, maxSnippetLength);
+    }
     return sb.toString();
   }
 

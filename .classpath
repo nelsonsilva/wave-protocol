@@ -5,7 +5,7 @@
 	<classpathentry kind="src" path="proto_src"/>
 	<classpathentry kind="src" path="gen/messages"/>
 	<classpathentry kind="src" path="gen/gxp"/>
-	<classpathentry kind="lib" path="third_party/runtime/guava/guava-r07.jar"/>
+	<classpathentry kind="lib" path="third_party/runtime/guava/guava-r09.jar"/>
 	<classpathentry kind="lib" path="third_party/codegen/antlr/antlr-3.2.jar"/>
 	<classpathentry kind="lib" path="third_party/codegen/gwt/gwt-dev.jar"/>
 	<classpathentry kind="lib" path="third_party/codegen/gwt/gwt-user.jar"/>

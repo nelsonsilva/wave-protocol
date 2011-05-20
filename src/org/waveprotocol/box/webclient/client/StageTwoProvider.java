@@ -25,8 +25,6 @@ import org.waveprotocol.wave.client.StageOne;
 import org.waveprotocol.wave.client.StageTwo;
 import org.waveprotocol.wave.client.account.ProfileManager;
 import org.waveprotocol.wave.client.common.util.AsyncHolder;
-import org.waveprotocol.wave.client.scheduler.Scheduler.Task;
-import org.waveprotocol.wave.client.scheduler.SchedulerInstance;
 import org.waveprotocol.wave.concurrencycontrol.channel.WaveViewService;
 import org.waveprotocol.wave.model.id.IdGenerator;
 import org.waveprotocol.wave.model.id.WaveId;
@@ -49,6 +47,9 @@ public class StageTwoProvider extends StageTwo.DefaultProvider {
   // TODO: Remove this after WebClientBackend is deleted.
   private final IdGenerator idGenerator;
 
+  // shared across other client components
+  private final ProfileManager profiles;
+
   /**
    * Continuation to progress to the next stage. This will disappear with the
    * new protocol.
@@ -62,13 +63,14 @@ public class StageTwoProvider extends StageTwo.DefaultProvider {
    */
   public StageTwoProvider(StageOne stageOne, WaveId waveId, RemoteViewServiceMultiplexer channel,
       boolean isNewWave, IdGenerator idGenerator, ProfileManager profiles) {
-    super(stageOne, profiles);
+    super(stageOne);
     Preconditions.checkArgument(stageOne != null);
     Preconditions.checkArgument(waveId != null);
     this.waveId = waveId;
     this.channel = channel;
     this.isNewWave = isNewWave;
     this.idGenerator = idGenerator;
+    this.profiles = profiles;
   }
 
   @Override
@@ -107,38 +109,37 @@ public class StageTwoProvider extends StageTwo.DefaultProvider {
       super.install();
       whenReady.use(StageTwoProvider.this);
     } else {
-      // Use deferred command to work around Issue 126.
-      // http://code.google.com/p/wave-protocol/issues/detail?id=126
-      // TODO: make synchronous again after that bug is fixed.
-      SchedulerInstance.getLowPriorityTimer().scheduleDelayed(new Task() {
+      // For an existing wave, while we're still using the old protocol,
+      // rendering must be delayed until the channel is opened, because the
+      // initial state snapshots come from the channel.
+      getConnector().connect(new Command() {
         @Override
         public void execute() {
-          // For an existing wave, while we're still using the old protocol,
-          // rendering must be delayed until the channel is opened, because the
-          // initial state snapshots come from the channel.
-          getConnector().connect(new Command() {
-            @Override
-            public void execute() {
-              // This code must be kept in sync with the default install()
-              // method, but excluding the connect() call.
+          // This code must be kept in sync with the default install()
+          // method, but excluding the connect() call.
 
-              // Install diff control before rendering, because logical diff state may
-              // need to be adjusted due to arbitrary UI policies.
-              getDiffController().install();
+          // Install diff control before rendering, because logical diff state
+          // may
+          // need to be adjusted due to arbitrary UI policies.
+          getDiffController().install();
 
-              // Ensure the wave is rendered.
-              stageOne.getDomAsViewProvider().setRenderer(getRenderer());
-              ensureRendered();
+          // Ensure the wave is rendered.
+          stageOne.getDomAsViewProvider().setRenderer(getRenderer());
+          ensureRendered();
 
-              // Install eager UI.
-              installFeatures();
+          // Install eager UI.
+          installFeatures();
 
-              // Rendering, and therefore the whole stage is now ready.
-              whenReady.use(StageTwoProvider.this);
-            }
-          });
-        }}, 200);
+          // Rendering, and therefore the whole stage is now ready.
+          whenReady.use(StageTwoProvider.this);
+        }
+      });
     }
+  }
+
+  @Override
+  protected ProfileManager createProfileManager() {
+    return profiles;
   }
 
   @Override

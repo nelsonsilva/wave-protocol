@@ -25,7 +25,7 @@ import com.google.wave.api.impl.WaveletData;
 
 import org.waveprotocol.wave.model.conversation.Conversation;
 import org.waveprotocol.wave.model.conversation.ConversationBlip;
-import org.waveprotocol.wave.model.conversation.ConversationBlip.InlineReplyThread;
+import org.waveprotocol.wave.model.conversation.ConversationBlip.LocatedReplyThread;
 import org.waveprotocol.wave.model.conversation.ConversationThread;
 import org.waveprotocol.wave.model.wave.Wavelet;
 
@@ -142,10 +142,6 @@ public class ContextResolver {
         addBlipToEventMessages(eventMessageBundle, blip, wavelet, eventDataConverter);
         for (ConversationThread replyThread : blip.getReplyThreads()) {
           threads.add(replyThread);
-        }
-        for (InlineReplyThread<? extends ConversationThread> replyThread :
-            blip.getInlineReplyThreads()) {
-          threads.add(replyThread.getThread());
         }
       }
     }

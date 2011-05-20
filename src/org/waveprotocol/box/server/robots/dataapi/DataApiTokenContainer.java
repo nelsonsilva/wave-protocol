@@ -74,9 +74,9 @@ public final class DataApiTokenContainer {
     this.tokenGenerator = tokenGenerator;
 
     requestTokenAccessors =
-        new MapMaker().expiration(REQUEST_TOKEN_EXPIRATION, TimeUnit.MINUTES).makeMap();
+        new MapMaker().expireAfterWrite(REQUEST_TOKEN_EXPIRATION, TimeUnit.MINUTES).makeMap();
     accessTokenAccessors =
-        new MapMaker().expiration(ACCESS_TOKEN_EXPIRATION, TimeUnit.MINUTES).makeMap();
+        new MapMaker().expireAfterWrite(ACCESS_TOKEN_EXPIRATION, TimeUnit.MINUTES).makeMap();
   }
 
   /**

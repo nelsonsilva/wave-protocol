@@ -510,7 +510,7 @@ public final class WaveletBasedConversation implements ObservableConversation {
   private void observe(WaveletBasedConversationBlip blip) {
     blips.put(blip.getId(), blip);
     blip.addListener(new BlipListenerAggregator(blip));
-    for (WaveletBasedConversationThread thread : blip.getAllReplyThreads()) {
+    for (WaveletBasedConversationThread thread : blip.getReplyThreads()) {
       observe(thread);
     }
   }

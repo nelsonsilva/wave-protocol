@@ -256,7 +256,7 @@ public final class ReducingRendererHelper<R> implements ResultProducingRenderHel
 
     // Replace thread renderings with anchor renderings.
     IdentityMap<ConversationThread, R> defaultAnchors = CollectionUtils.createIdentityMap();
-    for (ConversationThread reply : blip.getAllReplyThreads()) {
+    for (ConversationThread reply : blip.getReplyThreads()) {
       defaultAnchors.put(reply, builders.render(reply, threads.get(reply)));
     }
 

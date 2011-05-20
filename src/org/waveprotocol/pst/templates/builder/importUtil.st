@@ -1,5 +1,4 @@
 
-import $m.fullName$;
 import $p$.$m.name$Util;
 
 $m.nestedMessages: {t|

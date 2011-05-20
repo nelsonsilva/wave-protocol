@@ -163,6 +163,10 @@ public interface StageThree {
       return ViewToolbar.create();
     }
 
+    protected String getLocalDomain() {
+      return null;
+    }
+
     protected void install() {
       EditorStaticDeps.setPopupProvider(PopupFactory.getProvider());
       EditorStaticDeps.setPopupChromeProvider(PopupChromeFactory.getProvider());
@@ -181,7 +185,7 @@ public interface StageThree {
           getViewToolbar(), getEditToolbar());
       ReplyIndicatorController.install(actions, edit, panel);
       EditController.install(focus, actions, panel);
-      ParticipantController.install(panel, models, profiles);
+      ParticipantController.install(panel, models, profiles, getLocalDomain());
       stageTwo.getDiffController().upgrade(edit);
     }
   }

@@ -66,7 +66,6 @@ import org.waveprotocol.wave.model.document.indexed.SimpleAnnotationSet;
 import org.waveprotocol.wave.model.document.indexed.StubModifiableAnnotations;
 import org.waveprotocol.wave.model.document.indexed.Validator;
 import org.waveprotocol.wave.model.document.operation.Attributes;
-import org.waveprotocol.wave.model.document.operation.DocOp;
 import org.waveprotocol.wave.model.document.operation.DocInitialization;
 import org.waveprotocol.wave.model.document.operation.DocOp;
 import org.waveprotocol.wave.model.document.operation.Nindo;
@@ -403,7 +402,11 @@ public class ContentDocument {
       e.reInsertImpl();
     }
 
-    e.triggerChildrenReady();
+    // Another increasing-level piece of logic, similar to above.
+    // if oldLevel < RENDERED && RENDERED <= level
+    if (!oldLevel.isAtLeast(Level.RENDERED) && level.isAtLeast(Level.RENDERED)) {
+      e.triggerChildrenReady();
+    }
 
     assert checkHealthy(e, false);
   }

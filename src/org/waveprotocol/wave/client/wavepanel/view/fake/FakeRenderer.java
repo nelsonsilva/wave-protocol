@@ -116,7 +116,7 @@ public final class FakeRenderer implements WaveRenderer<View>, ModelAsViewProvid
         IdentityMap<ConversationThread, View> defaultAnchors,
         IdentityMap<Conversation, View> nestedReplies) {
       LinkedSequence<FakeAnchor> anchorsUi = LinkedSequence.create();
-      for (ConversationThread reply : blip.getAllReplyThreads()) {
+      for (ConversationThread reply : blip.getReplyThreads()) {
         anchorsUi.append((FakeAnchor) defaultAnchors.get(reply));
       }
       LinkedSequence<FakeInlineConversationView> nestedUis = LinkedSequence.create();

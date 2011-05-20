@@ -188,7 +188,7 @@ public final class FullDomRenderer implements RenderingRules<UiBuilder> {
     UiBuilder threadsUi = new UiBuilder() {
       @Override
       public void outputHtml(SafeHtmlBuilder out) {
-        for (ConversationThread thread : blip.getAllReplyThreads()) {
+        for (ConversationThread thread : blip.getReplyThreads()) {
           anchorUis.get(thread).outputHtml(out);
         }
       }

@@ -29,7 +29,7 @@ import com.google.gwt.core.client.GWT;
  * http://groups.google.com/group/Google-Web-Toolkit-Contributors/browse_thread/thread/6745dee7a85eb585/bd58d1a9f2344b34
  *
  */
-public class UserAgentStaticProperties {
+public abstract class UserAgentStaticProperties {
 
   static UserAgentStaticProperties get() {
     return INSTANCE;
@@ -40,7 +40,7 @@ public class UserAgentStaticProperties {
   /**
    * Creates an instance of UserAgent.
    *
-   * NOTE(user): This method is designed to be statically evaluable by
+   * NOTE(danilatos): This method is designed to be statically evaluable by
    *                   the compiler, such that the compiler can determine that
    *                   only one subclass of UserAgent is ever used within a
    *                   given permutation. This is possible because

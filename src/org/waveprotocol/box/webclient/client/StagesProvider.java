@@ -63,6 +63,7 @@ public class StagesProvider extends Stages {
   private final ProfileManager profiles;
   private final WaveStore waveStore;
   private final boolean isNewWave;
+  private final String localDomain;
 
   private boolean closed;
   private StageOne one;
@@ -82,7 +83,7 @@ public class StagesProvider extends Stages {
    */
   public StagesProvider(Element wavePanelElement, LogicalPanel rootPanel, WaveRef waveRef,
       RemoteViewServiceMultiplexer channel, IdGenerator idGenerator, ProfileManager profiles,
-      WaveStore store, boolean isNewWave) {
+      WaveStore store, boolean isNewWave, String localDomain) {
     this.wavePanelElement = wavePanelElement;
     this.rootPanel = rootPanel;
     this.waveRef = waveRef;
@@ -91,6 +92,7 @@ public class StagesProvider extends Stages {
     this.profiles = profiles;
     this.waveStore = store;
     this.isNewWave = isNewWave;
+    this.localDomain = localDomain;
   }
 
   @Override
@@ -131,6 +133,11 @@ public class StagesProvider extends Stages {
             onStageThreeLoaded(x, whenReady);
           }
         });
+      }
+
+      @Override
+      protected String getLocalDomain() {
+        return localDomain;
       }
     });
   }

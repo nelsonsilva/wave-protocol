@@ -19,6 +19,7 @@
   <set-configuration-property name="compiler.emulatedStack.recordLineNumbers" value="true" />
 
   <!-- Only build supported clients. -->
-  <set-property name="user.agent" value="safari,gecko1_8,ie6"/>
+  <set-property name="user.agent" value="safari,gecko1_8,ie6,ie8"/>
+  <set-property name="mobile.user.agent" value="not_mobile" />
   <set-property name="loglevel" value="none" /> 
 </module>

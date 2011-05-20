@@ -83,7 +83,7 @@ public class WebClient implements EntryPoint {
   // Please also see WebClientDemo.gwt.xml.
   private static final Logger REMOTE_LOG = Logger.getLogger("REMOTE_LOG");
 
-  private final ProfileManager profiles = new ProfileManagerImpl(Session.get().getDomain());
+  private final ProfileManager profiles = new ProfileManagerImpl();
 
   @UiField
   SplitLayoutPanel splitPanel;
@@ -267,7 +267,8 @@ public class WebClient implements EntryPoint {
     waveHolder.getElement().appendChild(loading);
     Element holder = waveHolder.getElement().appendChild(Document.get().createDivElement());
     StagesProvider wave = new StagesProvider(
-        holder, waveHolder, waveRef, channel, idGenerator, profiles, waveStore, isNewWave);
+        holder, waveHolder, waveRef, channel, idGenerator, profiles, waveStore, isNewWave,
+        Session.get().getDomain());
     this.wave = wave;
     wave.load(new Command() {
       @Override

@@ -711,8 +711,6 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
       ConversationThread actual) {
     assertEquals("Mismatched id in constructed conversation thread",
         expected.getId(), actual.getId());
-    assertEquals("Mismatched isInline in constructed conversation thread",
-        expected.isInline(), actual.isInline());
     assertEquals("Mismatched first blip in constructed conversation thread",
         expected.getFirstBlip() == null, actual.getFirstBlip() == null);
     Iterator<? extends ConversationBlip> expectedBlips = expected.getBlips().iterator();

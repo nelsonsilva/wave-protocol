@@ -40,11 +40,6 @@ public interface ConversationThread {
   ConversationBlip getParentBlip();
 
   /**
-   * Whether this thread is an inline thread.
-   */
-  boolean isInline();
-
-  /**
    * Gets the blips in this thread in sequential order.
    */
   Iterable<? extends ConversationBlip> getBlips();

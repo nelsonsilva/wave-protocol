@@ -70,6 +70,18 @@ delta_store_directory = @DELTA_STORE_DIRECTORY@
 # Default value: true
 use_socketio = @USE_SOCKETIO@
 
+# Note: the default value for admin is an invalid user id that cannot be registered.
+# To become an admin: Register a user and set its address as the value below.
+# Admin has a privilege to change passwords of other users using an agent robot.
+# Default value: @${wave_server_domain}
+admin_user = @ADMIN_USER@
+
+# You can also register a robot that allows users to change their own passwords.
+# 1. On the same robot registration page enter the robot name: passwd-bot
+# 2. Enter the robot URL in the form: http://example.com:9898/agent/passwd/admin
+# 3. Enter the robot URL in the form: http://example.com:9898/agent/passwd/user
+# 4. Click on register.
+
 # To enable federation, edit the server.federation.config file and include it here.
 # Or run ant -f server-config.xml server-federation-config
 # If not using the server-config.xml ant script - it is possible just to comment the line.

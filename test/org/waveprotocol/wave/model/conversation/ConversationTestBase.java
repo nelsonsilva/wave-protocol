@@ -30,7 +30,7 @@ import junit.framework.TestCase;
 
 import org.mockito.InOrder;
 import org.waveprotocol.wave.model.conversation.Conversation.Anchor;
-import org.waveprotocol.wave.model.conversation.ConversationBlip.InlineReplyThread;
+import org.waveprotocol.wave.model.conversation.ConversationBlip.LocatedReplyThread;
 import org.waveprotocol.wave.model.document.MutableDocument;
 import org.waveprotocol.wave.model.document.MutableDocument.Action;
 import org.waveprotocol.wave.model.document.util.DocHelper;
@@ -201,11 +201,6 @@ public abstract class ConversationTestBase extends TestCase {
     assertNull(target.getRootThread().getParentBlip());
   }
 
-  public void testRootThreadIsNotInline() {
-    ConversationThread root = target.getRootThread();
-    assertFalse(root.isInline());
-  }
-
   public void testAppendBlipAppendsBlipsToThread() {
     ConversationThread thread = target.getRootThread();
     ConversationBlip b1 = thread.appendBlip();
@@ -261,10 +256,9 @@ public abstract class ConversationTestBase extends TestCase {
     ConversationThread thread = blip.appendInlineReplyThread(location);
 
     assertSame(blip, thread.getParentBlip());
-    assertEquals(Collections.singletonList(InlineReplyThread.of(thread, location)),
-        blip.getInlineReplyThreads());
+    assertEquals(Collections.singletonList(LocatedReplyThread.of(thread, location)),
+        blip.locateReplyThreads());
     assertThreadChildrenConsistent(blip);
-    assertTrue(thread.isInline());
   }
 
   public void testInlineReplyWithMultipleAnchorsUsesFirst() {
@@ -283,8 +277,8 @@ public abstract class ConversationTestBase extends TestCase {
       }
     });
 
-    assertEquals(Collections.singletonList(InlineReplyThread.of(thread, location)),
-        blip.getInlineReplyThreads());
+    assertEquals(Collections.singletonList(LocatedReplyThread.of(thread, location)),
+        blip.locateReplyThreads());
   }
 
   public void testInlineReplyPointUpdatesWithDocContent() {
@@ -305,7 +299,7 @@ public abstract class ConversationTestBase extends TestCase {
         startText = Point.before(doc, textNode);
         doc.insertText(startText, "ab");
 
-        int newLocation = blip.getInlineReplyThreads().iterator().next().getLocation();
+        int newLocation = blip.locateReplyThreads().iterator().next().getLocation();
         assertEquals(replyLocation + 2, newLocation);
       }
     });
@@ -328,9 +322,7 @@ public abstract class ConversationTestBase extends TestCase {
         // Delete text and anchor.
         doc.deleteRange(Point.before(doc, textNode),
             Point.inElement(bodyNode, null));
-        // Still reports as inline.
-        assertTrue(replyThread.isInline());
-        int newLocation = blip.getInlineReplyThreads().iterator().next().getLocation();
+        int newLocation = blip.locateReplyThreads().iterator().next().getLocation();
         assertEquals(Blips.INVALID_INLINE_LOCATION, newLocation);
       }
     });
@@ -356,13 +348,13 @@ public abstract class ConversationTestBase extends TestCase {
         E anchorToDelete = Point.elementAfter(doc, doc.locate(replyLocation));
         doc.deleteNode(anchorToDelete);
 
-        List<InlineReplyThread<ConversationThread>> expected =
-            new ArrayList<InlineReplyThread<ConversationThread>>();
-        expected.add(InlineReplyThread.of(t2, replyLocation));
-        expected.add(InlineReplyThread.of(t1, replyLocation + 2));
-        expected.add(InlineReplyThread.of(t3, Blips.INVALID_INLINE_LOCATION));
-        List<InlineReplyThread<? extends ConversationThread>> threads =
-            CollectionUtils.newArrayList(blip.getInlineReplyThreads());
+        List<LocatedReplyThread<ConversationThread>> expected =
+            new ArrayList<LocatedReplyThread<ConversationThread>>();
+        expected.add(LocatedReplyThread.of(t2, replyLocation));
+        expected.add(LocatedReplyThread.of(t1, replyLocation + 2));
+        expected.add(LocatedReplyThread.of(t3, Blips.INVALID_INLINE_LOCATION));
+        List<LocatedReplyThread<? extends ConversationThread>> threads =
+            CollectionUtils.newArrayList(blip.locateReplyThreads());
         assertEquals(expected, threads);
       }
     });
@@ -647,7 +639,7 @@ public abstract class ConversationTestBase extends TestCase {
     assertThreadAccessible(thread);
 
     assertEquals(blip, thread.getParentBlip());
-    assertEquals(Collections.emptyList(), blip.getReplyThreads());
+    assertFalse(blip.getReplyThreads().iterator().hasNext());
     assertEquals(thread, replyBlip.getThread());
     assertEquals(Collections.emptyList(), getBlipList(thread));
   }
@@ -919,7 +911,7 @@ public abstract class ConversationTestBase extends TestCase {
    * Convenience function that returns all reply threads to a blip as a List.
    */
   protected static List<ConversationThread> getAllReplyList(ConversationBlip blip) {
-    return CollectionUtils.newArrayList(blip.getAllReplyThreads());
+    return CollectionUtils.newArrayList(blip.getReplyThreads());
   }
 
   /**
@@ -943,17 +935,13 @@ public abstract class ConversationTestBase extends TestCase {
   private static void assertThreadChildrenConsistent(ConversationBlip blip) {
     Set<ConversationThread> allChildren =
         new HashSet<ConversationThread>();
-    for (ConversationThread thread : blip.getAllReplyThreads()) {
+    for (ConversationThread thread : blip.getReplyThreads()) {
       assertFalse(allChildren.contains(thread));
       allChildren.add(thread);
     }
     for (ConversationThread child : blip.getReplyThreads()) {
       assertTrue(allChildren.contains(child));
       allChildren.remove(child);
-    }
-    for (InlineReplyThread<?> child : blip.getInlineReplyThreads()) {
-      assertTrue(allChildren.contains(child.getThread()));
-      allChildren.remove(child.getThread());
     }
     // make sure they are exactly equals
     assertEquals(0, allChildren.size());
@@ -988,13 +976,13 @@ public abstract class ConversationTestBase extends TestCase {
    * Asserts that the state-querying methods on a blip can be called.
    */
   protected static void assertBlipAccessible(ConversationBlip blip) {
-    blip.getAllReplyThreads();
+    blip.getReplyThreads();
     blip.getAuthorId();
     blip.getContent();
     blip.getContributorIds();
     blip.getConversation();
     blip.getId();
-    blip.getInlineReplyThreads();
+    blip.locateReplyThreads();
     blip.getLastModifiedTime();
     blip.getLastModifiedVersion();
     blip.getReplyThreads();
@@ -1012,6 +1000,5 @@ public abstract class ConversationTestBase extends TestCase {
     thread.getFirstBlip();
     thread.getId();
     thread.getParentBlip();
-    thread.isInline();
   }
 }

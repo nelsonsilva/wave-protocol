@@ -1,8 +1,6 @@
 $if (f.optional)$
 
-  if (has$f.capName$()) {
-    $result$ = ($shift$ * $result$) + $f.name$.hashCode();
-  }
+  $result$ = ($shift$ * $result$) + (has$f.capName$() ? $f.name$.hashCode() : 0);
 
 $else$
 

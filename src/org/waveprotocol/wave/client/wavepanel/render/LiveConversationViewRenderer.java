@@ -101,7 +101,7 @@ public class LiveConversationViewRenderer
       BlipView blipView = views.getBlipView(parentBlip);
 
       if (blipView != null) {
-        ConversationThread next = findBefore(thread, parentBlip.getAllReplyThreads());
+        ConversationThread next = findBefore(thread, parentBlip.getReplyThreads());
         replyHandler.presentAfter(blipView, next, thread);
       } else {
         throw new IllegalStateException("blipView not present");

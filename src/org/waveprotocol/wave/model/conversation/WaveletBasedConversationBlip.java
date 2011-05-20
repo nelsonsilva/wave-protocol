@@ -102,19 +102,19 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
 
 
   /**
-   * Inline reply thread which specialises the thread type to
+   * A located reply thread  which specializes the thread type to
    * WaveletBasedConversationThread.
    */
-  final class InlineReplyThread
-      extends ConversationBlip.InlineReplyThread<WaveletBasedConversationThread>
-      implements Comparable<InlineReplyThread> {
+  final class LocatedReplyThread
+      extends ConversationBlip.LocatedReplyThread<WaveletBasedConversationThread>
+      implements Comparable<LocatedReplyThread> {
 
-    InlineReplyThread(WaveletBasedConversationThread thread, int location) {
+    LocatedReplyThread(WaveletBasedConversationThread thread, int location) {
       super(thread, location);
     }
 
     @Override
-    public int compareTo(WaveletBasedConversationBlip.InlineReplyThread o) {
+    public int compareTo(WaveletBasedConversationBlip.LocatedReplyThread o) {
       if (getLocation() == o.getLocation()) {
         return 0;
       } else if (getLocation() == Blips.INVALID_INLINE_LOCATION) {
@@ -220,36 +220,22 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
     return parentThread;
   }
 
-  @Override
-  public Iterable<WaveletBasedConversationThread> getReplyThreads() {
-    // NOTE(anorth): We could cache this while no more replies are added
-    // if this proves a performance problem, but I don't expect this to
-    // be called more than a small constant number of times.
-    List<WaveletBasedConversationThread> nonInlineReplyThreads = CollectionUtils.newArrayList();
-    for (WaveletBasedConversationThread reply : getAllReplyThreads()) {
-      if (!reply.isInline()) {
-        nonInlineReplyThreads.add(reply);
-      }
-    }
-    return Collections.unmodifiableList(nonInlineReplyThreads);
-  }
+ 
 
   @Override
-  public Iterable<InlineReplyThread> getInlineReplyThreads() {
+  public Iterable<LocatedReplyThread> locateReplyThreads() {
     // NOTE(anorth): We must recalculate the anchor locations on each
     // call as the document does not provide stable elements. However, we
     // calculate the list of anchor locations on demand.
     Map<String, Integer> replyLocations = null;
-    List<InlineReplyThread> inlineReplyThreads = CollectionUtils.newArrayList();
-    for (WaveletBasedConversationThread reply : getAllReplyThreads()) {
-      if (reply.isInline()) {
-        if (replyLocations == null) {
-          replyLocations = findAnchors();
-        }
-        Integer location = replyLocations.get(reply.getId());
-        inlineReplyThreads.add(new InlineReplyThread(reply,
-            (location != null) ? location : Blips.INVALID_INLINE_LOCATION));
+    List<LocatedReplyThread> inlineReplyThreads = CollectionUtils.newArrayList();
+    for (WaveletBasedConversationThread reply : getReplyThreads()) {
+      if (replyLocations == null) {
+        replyLocations = findAnchors();
       }
+      Integer location = replyLocations.get(reply.getId());
+      inlineReplyThreads.add(new LocatedReplyThread(reply,
+          (location != null) ? location : Blips.INVALID_INLINE_LOCATION));
     }
     Collections.sort(inlineReplyThreads);
     return Collections.unmodifiableList(inlineReplyThreads);
@@ -261,7 +247,7 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
    * The 'history of appends' corresponds to the manifest order of replies.
    */
   @Override
-  public Iterable<WaveletBasedConversationThread> getAllReplyThreads() {
+  public Iterable<WaveletBasedConversationThread> getReplyThreads() {
     final Iterable<? extends ObservableManifestThread> manifestBlips = manifestBlip.getReplies();
     return new Iterable<WaveletBasedConversationThread>() {
       @Override
@@ -410,11 +396,8 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
    */
   void deleteThread(WaveletBasedConversationThread threadToDelete) {
     threadToDelete.deleteBlips();
-    boolean threadWasInline = threadToDelete.isInline();
     manifestBlip.removeReply(threadToDelete.getManifestThread());
-    if (threadWasInline) {
-      clearInlineReplyAnchor(threadToDelete.getId());
-    }
+    clearInlineReplyAnchor(threadToDelete.getId());
   }
 
   /**
@@ -426,7 +409,7 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
     // deleteThread() equivalent is inline here so we can do only one
     // document traversal to remove inline reply anchors.
     List<WaveletBasedConversationThread> threads =
-        CollectionUtils.newArrayList(getAllReplyThreads());
+        CollectionUtils.newArrayList(getReplyThreads());
     for (WaveletBasedConversationThread threadToDelete : threads) {
       threadToDelete.deleteBlips();
       manifestBlip.removeReply(threadToDelete.getManifestThread());

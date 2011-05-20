@@ -12,12 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package $m.package$;
 
+// Import order matters here due to what looks like a javac bug.
+// Eclipse doesn't seem to have this problem.
+import org.waveprotocol.wave.communication.gson.GsonSerializable;
+
 $imports(m=m)$
+
+import org.waveprotocol.wave.communication.Blob;
+import org.waveprotocol.wave.communication.ProtoEnums;
+import org.waveprotocol.wave.communication.gson.GsonException;
+import org.waveprotocol.wave.communication.gson.GsonUtil;
+import org.waveprotocol.wave.communication.json.RawStringData;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -25,18 +34,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import org.waveprotocol.wave.communication.Blob;
-import org.waveprotocol.wave.communication.ProtoEnums;
-import org.waveprotocol.wave.communication.gson.GsonException;
-import org.waveprotocol.wave.communication.gson.GsonSerializable;
-import org.waveprotocol.wave.communication.gson.GsonUtil;
-import org.waveprotocol.wave.communication.json.RawStringData;
-
 /**
  * Pojo implementation of $m.name$ with gson serialization and deserialization.
  *
- * Do not edit.
- *
- * Generated from $m.filename$.
+ * Generated from $m.filename$.  Do not edit.
  */
 $class(m=m)$

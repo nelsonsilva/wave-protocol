@@ -511,11 +511,15 @@ public final class FullStructure implements UpgradeableDomAsViewProvider {
           DomViewHelper.attachBefore(impl.getParticipantContainer(), impl.getSimpleMenu(), t);
           // Kick Webkit, because of its incremental layout bugs.
           if (UserAgent.isWebkit()) {
+
+            String oldDisplay = impl.getElement().getStyle().getDisplay();
+
             // Erase layout. Querying getOffsetParent() forces layout.
             impl.getElement().getStyle().setDisplay(Display.NONE);
             impl.getElement().getOffsetParent();
+
             // Restore layout.
-            impl.getElement().getStyle().clearDisplay();
+            impl.getElement().getStyle().setProperty("display", oldDisplay);
           }
           return asParticipant(t);
         }

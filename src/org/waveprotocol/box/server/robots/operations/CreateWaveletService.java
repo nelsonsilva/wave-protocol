@@ -17,34 +17,29 @@
 
 package org.waveprotocol.box.server.robots.operations;
 
+import static org.waveprotocol.box.server.robots.util.RobotsUtil.createEmptyRobotWavelet;
+
 import com.google.common.collect.Lists;
 import com.google.wave.api.ApiIdSerializer;
 import com.google.wave.api.InvalidRequestException;
-import com.google.wave.api.OperationRequest;
 import com.google.wave.api.JsonRpcConstant.ParamsProperty;
+import com.google.wave.api.OperationRequest;
 import com.google.wave.api.event.WaveletCreatedEvent;
 import com.google.wave.api.impl.WaveletData;
 
 import org.waveprotocol.box.server.robots.OperationContext;
 import org.waveprotocol.box.server.robots.RobotWaveletData;
 import org.waveprotocol.box.server.robots.util.OperationUtil;
-import org.waveprotocol.box.server.util.WaveletDataUtil;
 import org.waveprotocol.wave.model.conversation.ObservableConversationBlip;
 import org.waveprotocol.wave.model.conversation.ObservableConversationView;
 import org.waveprotocol.wave.model.conversation.WaveletBasedConversation;
-import org.waveprotocol.wave.model.id.IdURIEncoderDecoder;
 import org.waveprotocol.wave.model.id.InvalidIdException;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.WaveletName;
-import org.waveprotocol.wave.model.version.HashedVersion;
-import org.waveprotocol.wave.model.version.HashedVersionFactory;
-import org.waveprotocol.wave.model.version.HashedVersionZeroFactoryImpl;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
-import org.waveprotocol.wave.model.wave.data.ObservableWaveletData;
 import org.waveprotocol.wave.model.wave.opbased.OpBasedWavelet;
-import org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec;
 
 import java.util.List;
 
@@ -54,11 +49,6 @@ import java.util.List;
  * @author ljvderijk@google.com (Lennard de Rijk)
  */
 public class CreateWaveletService implements OperationService {
-
-  private static final IdURIEncoderDecoder URI_CODEC =
-      new IdURIEncoderDecoder(new JavaUrlCodec());
-  private static final HashedVersionFactory HASH_FACTORY =
-      new HashedVersionZeroFactoryImpl(URI_CODEC);
 
   private CreateWaveletService() {
   }
@@ -100,11 +90,7 @@ public class CreateWaveletService implements OperationService {
     }
 
     WaveletName waveletName = context.getConversationUtil().generateWaveletName();
-    HashedVersion hashedVersionZero = HASH_FACTORY.createVersionZero(waveletName);
-    ObservableWaveletData emptyWavelet = WaveletDataUtil.createEmptyWavelet(
-        waveletName, participant, hashedVersionZero, System.currentTimeMillis());
-
-    RobotWaveletData newWavelet = new RobotWaveletData(emptyWavelet, hashedVersionZero);
+    RobotWaveletData newWavelet = createEmptyRobotWavelet(participant, waveletName);
     OpBasedWavelet opBasedWavelet = newWavelet.getOpBasedWavelet(participant);
 
     WaveletBasedConversation.makeWaveletConversational(opBasedWavelet);

@@ -43,8 +43,8 @@
 <replace-with class="org.waveprotocol.wave.client.editor.EditorImplWebkitMobile">
   <when-type-is class="org.waveprotocol.wave.client.editor.EditorImpl"/>
   <any>
-    <when-property-is name="user.agent" value="iphone"/>
-    <when-property-is name="user.agent" value="android"/>
+    <when-property-is name="mobile.user.agent" value="iphone"/>
+    <when-property-is name="mobile.user.agent" value="android"/>
   </any>
 </replace-with>
 

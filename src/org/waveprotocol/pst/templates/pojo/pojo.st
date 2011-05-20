@@ -12,24 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package $m.package$;
 
 $imports(m=m)$
 
+import org.waveprotocol.wave.communication.Blob;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.waveprotocol.wave.communication.Blob;
-
 /**
  * Pojo implementation of $m.name$.
  *
- * Do not edit.
- *
- * Generated from $m.filename$.
+ * Generated from $m.filename$.  Do not edit.
  */
 $class(m=m)$

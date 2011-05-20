@@ -45,7 +45,7 @@ public final class EditController implements KeySignalHandler {
     DEFAULT_BINDINGS.put(KeyCombo.CTRL_ENTER, Action.REPLY_TO_BLIP);
     DEFAULT_BINDINGS.put(KeyCombo.ENTER, Action.REPLY_TO_BLIP);
     DEFAULT_BINDINGS.put(KeyCombo.SHIFT_ENTER, Action.CONTINUE_THREAD);
-    DEFAULT_BINDINGS.put(KeyCombo.DELETE, Action.DELETE_BLIP);
+    DEFAULT_BINDINGS.put(KeyCombo.SHIFT_DELETE, Action.DELETE_BLIP);
   }
 
   EditController(FocusedActions actions, EnumMap<KeyCombo, Action> keyBindings) {

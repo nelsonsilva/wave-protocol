@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ValueFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -85,7 +85,7 @@ class RemoteWaveletContainerImpl extends WaveletContainerImpl implements RemoteW
   public ListenableFuture<Void> update(final List<ByteString> deltas,
       final String domain, final WaveletFederationProvider federationProvider,
       final CertificateManager certificateManager) {
-    ValueFuture<Void> futureResult = ValueFuture.create();
+    SettableFuture<Void> futureResult = SettableFuture.create();
     internalUpdate(deltas, domain, federationProvider, certificateManager, futureResult);
     return futureResult;
   }
@@ -102,7 +102,7 @@ class RemoteWaveletContainerImpl extends WaveletContainerImpl implements RemoteW
 
   private void internalUpdate(final List<ByteString> deltas,
       final String domain, final WaveletFederationProvider federationProvider,
-      final CertificateManager certificateManager, final ValueFuture<Void> futureResult) {
+      final CertificateManager certificateManager, final SettableFuture<Void> futureResult) {
     // Turn raw serialised ByteStrings in to a more useful representation
     final List<ByteStringMessage<ProtocolAppliedWaveletDelta>> appliedDeltas = Lists.newArrayList();
     for (ByteString delta : deltas) {
@@ -172,7 +172,7 @@ class RemoteWaveletContainerImpl extends WaveletContainerImpl implements RemoteW
   private void internalUpdateAfterSignerInfoRetrieval(
       List<ByteStringMessage<ProtocolAppliedWaveletDelta>> appliedDeltas,
       final String domain, final WaveletFederationProvider federationProvider,
-      final CertificateManager certificateManager, final ValueFuture<Void> futureResult) {
+      final CertificateManager certificateManager, final SettableFuture<Void> futureResult) {
     LOG.info("Passed signer info check, now applying all " + appliedDeltas.size() + " deltas");
     acquireWriteLock();
     try {

@@ -18,9 +18,7 @@ public $if(m.inner)$static$endif$ class $m.javaType$ implements $m.name$ {
 
   $m.fields: {f|$beans(m=m, f=f)$}$
 
-  /**
-   * Provided to subclasses to clear all fields, for example when deserializing.
-   */
+  /** Provided to subclasses to clear all fields, for example when deserializing. */
   protected void reset() {
     $m.fields: {f|$clearField(f=f)$}$
   }

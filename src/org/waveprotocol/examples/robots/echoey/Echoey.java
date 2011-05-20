@@ -45,7 +45,7 @@ public class Echoey extends AbstractRobot {
   private final Map<String, String> shadowBlipMap;
 
   public Echoey() {
-    shadowBlipMap = new MapMaker().expiration(1, TimeUnit.HOURS).makeMap();
+    shadowBlipMap = new MapMaker().expireAfterWrite(1, TimeUnit.HOURS).makeMap();
   }
 
   @Override

@@ -113,11 +113,6 @@ final class WaveletBasedConversationThread implements ObservableConversationThre
   }
 
   @Override
-  public boolean isInline() {
-    return manifestThread.isInline();
-  }
-
-  @Override
   public Iterable<WaveletBasedConversationBlip> getBlips() {
     final Iterable<? extends ObservableManifestBlip> manifestBlips = manifestThread.getBlips();
     return new Iterable<WaveletBasedConversationBlip>() {

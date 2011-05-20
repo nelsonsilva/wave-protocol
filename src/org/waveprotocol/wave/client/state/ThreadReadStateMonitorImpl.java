@@ -278,7 +278,7 @@ public final class ThreadReadStateMonitorImpl extends ObservableSupplementedWave
           }
         }
         // Add blips from reply threads.
-        for (ConversationThread replyThread : blip.getAllReplyThreads()) {
+        for (ConversationThread replyThread : blip.getReplyThreads()) {
           // Always create monitors (for efficiency in initialisation); but
           // don't necessarily include them in events unless (via monitor/
           // getReadState/getUnreadState) they are explicitly included.
@@ -494,7 +494,7 @@ public final class ThreadReadStateMonitorImpl extends ObservableSupplementedWave
     }
 
     // Add any reply threads.
-    for (ObservableConversationThread replyThread : blip.getAllReplyThreads()) {
+    for (ObservableConversationThread replyThread : blip.getReplyThreads()) {
       handleThreadAdded(replyThread);
     }
 
@@ -527,10 +527,8 @@ public final class ThreadReadStateMonitorImpl extends ObservableSupplementedWave
 
     // Remove any inline child threads of this blip (non-inline replies will
     // just be reanchored).
-    for (ObservableConversationThread replyThread : blip.getAllReplyThreads()) {
-      if (replyThread.isInline()) {
+    for (ObservableConversationThread replyThread : blip.getReplyThreads()) {
         handleThreadRemoved(replyThread);
-      }
     }
 
     countDownEvent();

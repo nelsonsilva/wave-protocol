@@ -78,7 +78,7 @@ public final class BlipIterators {
       while ((next == null) && currentThreadItr.hasNext()) {
         ConversationBlip maybeNext;
         maybeNext = currentThreadItr.next();
-        for (ConversationThread reply : maybeNext.getAllReplyThreads()) {
+        for (ConversationThread reply : maybeNext.getReplyThreads()) {
           threads.add(reply);
         }
         if (acceptsBlip.apply(maybeNext)) {

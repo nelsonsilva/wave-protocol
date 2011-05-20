@@ -42,6 +42,8 @@ import org.waveprotocol.box.server.persistence.SignerInfoStore;
 import org.waveprotocol.box.server.robots.RobotApiModule;
 import org.waveprotocol.box.server.robots.RobotRegistrationServlet;
 import org.waveprotocol.box.server.robots.active.ActiveApiServlet;
+import org.waveprotocol.box.server.robots.agent.passwd.PasswordAdminRobot;
+import org.waveprotocol.box.server.robots.agent.passwd.PasswordRobot;
 import org.waveprotocol.box.server.robots.dataapi.DataApiOAuthServlet;
 import org.waveprotocol.box.server.robots.dataapi.DataApiServlet;
 import org.waveprotocol.box.server.robots.passive.RobotsGateway;
@@ -158,6 +160,7 @@ public class ServerMain {
 
     initializeServer(injector, domain);
     initializeServlets(injector, server);
+    initializeRobotAgents(injector, server);
     initializeRobots(injector, waveBus);
     initializeFrontend(injector, server, waveBus);
     initializeFederation(injector);
@@ -225,6 +228,11 @@ public class ServerMain {
   private static void initializeRobots(Injector injector, WaveBus waveBus) {
     RobotsGateway robotsGateway = injector.getInstance(RobotsGateway.class);
     waveBus.subscribe(robotsGateway);
+  }
+  
+  private static void initializeRobotAgents(Injector injector, ServerRpcProvider server) {
+    server.addServlet(PasswordRobot.ROBOT_URI + "/*", PasswordRobot.class);
+    server.addServlet(PasswordAdminRobot.ROBOT_URI + "/*", PasswordAdminRobot.class);
   }
 
   private static void initializeFrontend(Injector injector, ServerRpcProvider server,

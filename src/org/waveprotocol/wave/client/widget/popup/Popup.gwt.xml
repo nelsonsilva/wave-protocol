@@ -16,12 +16,11 @@
 
   <!-- ... unless it's a mobile device - then use MobilePopupProvider -->
   <replace-with class="org.waveprotocol.wave.client.widget.popup.MobilePopupProvider">
-   <when-type-is class="org.waveprotocol.wave.client.widget.popup.PopupProvider"/>
-   <when-property-is name="user.agent" value="iphone"/>
-  </replace-with>
-  <replace-with class="org.waveprotocol.wave.client.widget.popup.MobilePopupProvider">
-   <when-type-is class="org.waveprotocol.wave.client.widget.popup.PopupProvider"/>
-   <when-property-is name="user.agent" value="android"/>
+    <when-type-is class="org.waveprotocol.wave.client.widget.popup.PopupProvider"/>
+    <any>
+      <when-property-is name="mobile.user.agent" value="iphone"/>
+      <when-property-is name="mobile.user.agent" value="android"/>
+    </any>
   </replace-with>
 
   <!-- Default to DesktopPopupChromeProvider... -->
@@ -32,10 +31,9 @@
   <!-- ... unless it's a small-screen client - then use MobilePopupChromeProvider -->
   <replace-with class="org.waveprotocol.wave.client.widget.popup.MobilePopupChromeProvider">
     <when-type-is class="org.waveprotocol.wave.client.widget.popup.PopupChromeProvider"/>
-    <when-property-is name="user.agent" value="iphone"/>
-  </replace-with>
-  <replace-with class="org.waveprotocol.wave.client.widget.popup.MobilePopupChromeProvider">
-    <when-type-is class="org.waveprotocol.wave.client.widget.popup.PopupChromeProvider"/>
-    <when-property-is name="user.agent" value="android"/>
+    <any>
+      <when-property-is name="mobile.user.agent" value="iphone"/>
+      <when-property-is name="mobile.user.agent" value="android"/>
+    </any>
   </replace-with>
 </module>

@@ -21,13 +21,13 @@
     <attribute name="proto" description="Protocol buffer class file"/>
     <sequential>
       <runpst proto="@{proto}"
-        templates="${src.dir}/org/waveprotocol/pst/templates/api/api.st
-                   ${src.dir}/org/waveprotocol/pst/templates/builder/builder.st
-                   ${src.dir}/org/waveprotocol/pst/templates/pojo/pojo.st
-                   ${src.dir}/org/waveprotocol/pst/templates/jso/jso.st
-                   ${src.dir}/org/waveprotocol/pst/templates/util/util.st
-                   ${src.dir}/org/waveprotocol/pst/templates/gson/gson.st
-                   ${src.dir}/org/waveprotocol/pst/templates/proto/proto.st"
+        templates='"${src.dir}/org/waveprotocol/pst/templates/api/api.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/builder/builder.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/pojo/pojo.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/jso/jso.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/util/util.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/gson/gson.st"
+                   "${src.dir}/org/waveprotocol/pst/templates/proto/proto.st"'
         outputdir="${gen.dir}/messages"/>
     </sequential>
   </macrodef>
@@ -48,8 +48,9 @@
             <include name="*/*.jar"/>
           </fileset>
         </classpath>
-        <arg line="-d @{outputdir}"/>
-        <arg line="-f @{proto}"/>
+        <arg line="-s pst"/>
+        <arg value="-d"/><arg value="@{outputdir}"/>
+        <arg value="-f"/><arg value="@{proto}"/>
         <arg line="@{templates}"/>
       </java>
     </sequential>

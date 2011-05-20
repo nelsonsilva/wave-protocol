@@ -75,7 +75,7 @@ public class SearchService implements OperationService {
    * Defined in the spec.
    */
   private static final int DEFAULT_NUMBER_SEARCH_RESULTS = 10;
-  private static final int DIGEST_SNIPPET_LENGTH = 30;
+  private static final int DIGEST_SNIPPET_LENGTH = 140;
   private static final int PARTICIPANTS_SNIPPET_LENGTH = 5;
   private static final String EMPTY_WAVELET_TITLE = "";
 

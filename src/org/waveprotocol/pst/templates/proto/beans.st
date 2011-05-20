@@ -2,13 +2,13 @@ $if (f.optional)$
 
   @Override
   public boolean has$f.capName$() {
-    lazilySwitchToProto();
+    switchToProto();
     return proto.has$f.capName$();
   }
 
   @Override
   public void clear$f.capName$() {
-    lazilySwitchToProtoBuilder();
+    switchToProtoBuilder();
     protoBuilder.clear$f.capName$();
   }
 
@@ -18,7 +18,7 @@ $if (f.repeated)$
 
   @Override
   public List<$f.boxedJavaType$> $f.getter$() {
-    lazilySwitchToProto();
+    switchToProto();
     $if (f.message)$
       List<$f.javaType$> list = new ArrayList<$f.javaType$>();
       for (int i = 0; i < $f.getter$Size(); i++) {
@@ -64,7 +64,7 @@ $if (f.repeated)$
           add$f.capName$(blob);
         }
       $else$
-        lazilySwitchToProtoBuilder();
+        switchToProtoBuilder();
         protoBuilder.addAll$f.capName$(values);
       $endif$
     }
@@ -72,7 +72,7 @@ $if (f.repeated)$
 
   @Override
   public $f.javaType$ $f.getter$(int n) {
-    lazilySwitchToProto();
+    switchToProto();
     $if (f.message)$
       return new $f.javaType$(proto.$f.getter$(n));
     $elseif (f.enum)$
@@ -89,13 +89,13 @@ $if (f.repeated)$
   $if (f.message)$
     @Override
     public void $f.setter$(int n, $f.messageType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       protoBuilder.$f.setter$(n, getOrCreate$f.javaType$(value).getPB());
     }
   $else$
     @Override
     public void $f.setter$(int n, $f.javaType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       $if (f.enum)$
         protoBuilder.$f.setter$(n, toProtoEnum$f.javaType$(value));
       $elseif (f.blob)$
@@ -108,20 +108,20 @@ $if (f.repeated)$
 
   @Override
   public int $f.getter$Size() {
-    lazilySwitchToProto();
+    switchToProto();
     return proto.$f.getter$Count();
   }
 
   $if (f.message)$
     @Override
     public void add$f.capName$($f.messageType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       protoBuilder.add$f.capName$(getOrCreate$f.javaType$(value).getPB());
     }
   $else$
     @Override
     public void add$f.capName$($f.javaType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       $if (f.enum)$
         protoBuilder.add$f.capName$(toProtoEnum$f.javaType$(value));
       $elseif (f.blob)$
@@ -134,7 +134,7 @@ $if (f.repeated)$
 
   @Override
   public void clear$f.capName$() {
-    lazilySwitchToProtoBuilder();
+    switchToProtoBuilder();
     protoBuilder.clear$f.capName$();
   }
 
@@ -142,7 +142,7 @@ $else$
 
   @Override
   public $f.javaType$ $f.getter$() {
-    lazilySwitchToProto();
+    switchToProto();
     $if (f.message)$
       return new $f.javaType$(proto.$f.getter$());
     $elseif (f.enum)$
@@ -157,14 +157,14 @@ $else$
   $if (f.message)$
     @Override
     public void $f.setter$($f.messageType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       protoBuilder.clear$f.capName$();
       protoBuilder.$f.setter$(getOrCreate$f.javaType$(value).getPB());
     }
   $else$
     @Override
     public void $f.setter$($f.javaType$ value) {
-      lazilySwitchToProtoBuilder();
+      switchToProtoBuilder();
       $if (f.enum)$
         protoBuilder.$f.setter$(toProtoEnum$f.javaType$(value));
       $elseif (f.blob)$

@@ -12,7 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.waveprotocol.pst.style;
@@ -29,6 +28,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.List;
 
@@ -138,7 +138,8 @@ public final class PstStyler implements Styler {
     private abstract class StatefulLineStyler implements LineStyler {
       private boolean inShortComment = false;
       private boolean inLongComment = false;
-      private boolean maybeInStartOfComment = true;
+      private boolean inStartOfComment = false;
+      private boolean previousWasComment = false;
       private int lineNumber = 0;
 
       protected boolean inComment() {
@@ -146,26 +147,40 @@ public final class PstStyler implements Styler {
       }
 
       protected boolean inStartOfComment() {
-        return maybeInStartOfComment && inComment();
+        return inStartOfComment;
+      }
+
+      protected boolean inLongComment() {
+        return inLongComment;
       }
 
       protected int getLineNumber() {
         return lineNumber;
       }
 
+      protected boolean previousWasComment() {
+        return previousWasComment;
+      }
+
       @Override
       public final void next(String line, LineGenerator generator) {
         lineNumber++;
         // TODO(kalman): JSNI?
-        if (line.contains("/*")) {
+        if (line.matches("^[ \t]*/\\*.*")) {
           inLongComment = true;
+          inStartOfComment = true;
         }
-        inShortComment = line.contains("//");
+        if (line.matches("^[ \t]*//.*")) {
+          inShortComment = true;
+          inStartOfComment = true;
+        }
         doNext(line, generator);
+        previousWasComment = inShortComment || inLongComment;
         if (line.contains("*/")) {
           inLongComment = false;
         }
-        maybeInStartOfComment = !inComment();
+        inShortComment = false;
+        inStartOfComment = false;
       }
 
       abstract void doNext(String line, LineGenerator generator);
@@ -252,12 +267,38 @@ public final class PstStyler implements Styler {
       return this;
     }
 
-    public StyleBuilder stripEmptyLines() {
+    public StyleBuilder stripBlankLines() {
       lineStylers.add(new LineStyler() {
         @Override public void next(String line, LineGenerator generator) {
           if (!line.isEmpty()) {
             generator.yield(line);
           }
+        }
+      });
+      return this;
+    }
+
+    public StyleBuilder stripInitialBlankLine() {
+      lineStylers.add(new LineStyler() {
+        boolean firstLine = true;
+        @Override public void next(String line, LineGenerator generator) {
+          if (!firstLine || !line.isEmpty()) {
+            generator.yield(line);
+          }
+          firstLine = false;
+        }
+      });
+      return this;
+    }
+
+    public StyleBuilder stripDuplicateBlankLines() {
+      lineStylers.add(new LineStyler() {
+        boolean previousWasEmpty = false;
+        @Override public void next(String line, LineGenerator generator) {
+          if (!previousWasEmpty || !line.isEmpty()) {
+            generator.yield(line);
+          }
+          previousWasEmpty = line.isEmpty();
         }
       });
       return this;
@@ -296,8 +337,8 @@ public final class PstStyler implements Styler {
     public StyleBuilder indentLongComments() {
       lineStylers.add(new StatefulLineStyler() {
         @Override void doNext(String line, LineGenerator generator) {
-          if (inComment() && !inStartOfComment()) {
-            generator.yield(' ' + line);
+          if (inLongComment() && !inStartOfComment()) {
+            generator.yield(" " + line);
           } else {
             generator.yield(line);
           }
@@ -323,10 +364,10 @@ public final class PstStyler implements Styler {
       return this;
     }
 
-    public StyleBuilder addBlankLineBeforeMatching(final String s) {
+    public StyleBuilder addBlankLineBeforeMatching(final String regex) {
       lineStylers.add(new StatefulLineStyler() {
         @Override public void doNext(String line, LineGenerator generator) {
-          if ((!inComment() || inStartOfComment()) && line.contains(s)) {
+          if ((!inComment() || inStartOfComment()) && line.matches(regex)) {
             generator.yield("");
           }
           generator.yield(line);
@@ -335,7 +376,57 @@ public final class PstStyler implements Styler {
       return this;
     }
 
-    public StyleBuilder addBlankLineAfterMatching(final String s) {
+    public StyleBuilder addBlankLineBeforeClasslikeWithNoPrecedingComment() {
+      lineStylers.add(new StatefulLineStyler() {
+        @Override public void doNext(String line, LineGenerator generator) {
+          if (!previousWasComment()
+              && line.matches(".*\\b(class|interface|enum)\\b.*")) {
+            generator.yield("");
+          }
+          generator.yield(line);
+        }
+      });
+      return this;
+    }
+
+    public StyleBuilder addBlankLineAfterBraceUnlessInMethod() {
+      lineStylers.add(new StatefulLineStyler() {
+        // true for every level of braces that is a class-like construct
+        ArrayDeque<Boolean> stack = new ArrayDeque<Boolean>();
+        boolean sawClasslike = false;
+
+        @Override public void doNext(String line, LineGenerator generator) {
+          if (inComment()) {
+            generator.yield(line);
+          } else if (line.endsWith("}") && !line.contains("{")) {
+            generator.yield(line);
+            stack.pop();
+            if (!stack.isEmpty() && stack.peek()) {
+              generator.yield("");
+            }
+          } else {
+            // Perhaps we could match anonymous classes by adding "new" here,
+            // but this is not currently needed.
+            if (line.matches(".*\\b(class|interface|enum)\\b.*")) {
+              sawClasslike = true;
+            }
+            if (line.endsWith("{")) {
+              if (line.contains("}")) {
+                stack.pop();
+              }
+              stack.push(sawClasslike);
+              sawClasslike = false;
+            } else if (line.endsWith(";")) {
+              sawClasslike = false;
+            }
+            generator.yield(line);
+          }
+        }
+      });
+      return this;
+    }
+
+    public StyleBuilder addBlankLineAfterMatching(final String regex) {
       lineStylers.add(new StatefulLineStyler() {
         boolean previousLineMatched = false;
 
@@ -344,7 +435,7 @@ public final class PstStyler implements Styler {
             generator.yield("");
           }
           generator.yield(line);
-          previousLineMatched = line.contains(s);
+          previousLineMatched = line.matches(regex);
         }
       });
       return this;
@@ -400,15 +491,20 @@ public final class PstStyler implements Styler {
         .addNewLineAfter(';')
         .trim()
         .removeRepeatedSpacing()
-        .stripEmptyLines()
+        .stripBlankLines()
         .trim()
         .indentBraces()
         .indentLongComments()
-        .addBlankLineBeforeMatching("@Override")
-        .addBlankLineBeforeMatching("/**")
-        .addBlankLineAfterMatching("package")
-        //.addBlankLineAfterMatching("implements")
+        .addBlankLineBeforeMatching("[ \t]*@Override.*")
+        .addBlankLineBeforeMatching(".*/\\*\\*.*")
+        .addBlankLineAfterMatching("package.*")
+        .addBlankLineBeforeMatching("package.*")
+        .addBlankLineBeforeClasslikeWithNoPrecedingComment()
+        .addBlankLineAfterBraceUnlessInMethod()
+        .stripDuplicateBlankLines()
         .doubleIndentUnfinishedLines()
+        .stripInitialBlankLine()
+        // TODO: blank line before first method or constructor if that has no javadoc
         .apply(lines);
   }
 }

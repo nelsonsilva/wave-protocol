@@ -63,7 +63,7 @@ public final class BlipMappers {
       if (!p.apply(blip)) {
         throw Exit.INSTANCE;
       }
-      for (ConversationThread thread : blip.getAllReplyThreads()) {
+      for (ConversationThread thread : blip.getReplyThreads()) {
         apply(thread);
       }
     }

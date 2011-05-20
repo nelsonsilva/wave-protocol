@@ -105,7 +105,7 @@ public final class ReductionBasedRenderer<R> implements WaveRenderer<R> {
   public R render(ConversationBlip blip) {
     // Threads.
     IdentityMap<ConversationThread, R> threadRs = null;
-    for (ConversationThread reply : blip.getAllReplyThreads()) {
+    for (ConversationThread reply : blip.getReplyThreads()) {
       if (threadRs == null) {
         threadRs = CollectionUtils.createIdentityMap();
       }
@@ -128,7 +128,7 @@ public final class ReductionBasedRenderer<R> implements WaveRenderer<R> {
 
     // Default-anchored threads.
     IdentityMap<ConversationThread, R> defaultAnchorRs = null;
-    for (ConversationThread reply : blip.getAllReplyThreads()) {
+    for (ConversationThread reply : blip.getReplyThreads()) {
       if (defaultAnchorRs == null) {
         defaultAnchorRs = CollectionUtils.createIdentityMap();
       }

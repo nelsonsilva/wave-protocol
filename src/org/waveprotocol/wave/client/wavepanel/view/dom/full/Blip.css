@@ -50,7 +50,7 @@
  * metabar element is positioned left by 0.3em with a 0.3em border.
  */
 
-.blip {
+.blip {  
   /* Positioned container for focus frame. */
   position: relative;
   padding: 3px;
@@ -168,5 +168,7 @@
 }
 
 .privateReplies {
-  margin: 0 1em 1em 4.5em;
+  margin: 0 1em 1em 4.5em;  
 }
+
+.contentContainer, .replies, .privateReplies{word-wrap: break-word;}

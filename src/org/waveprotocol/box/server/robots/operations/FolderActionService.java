@@ -17,6 +17,8 @@
 
 package org.waveprotocol.box.server.robots.operations;
 
+import static org.waveprotocol.box.server.robots.util.OperationUtil.buildSupplement;
+
 import com.google.common.collect.Maps;
 import com.google.wave.api.InvalidRequestException;
 import com.google.wave.api.JsonRpcConstant.ParamsProperty;
@@ -25,21 +27,9 @@ import com.google.wave.api.OperationRequest;
 import org.waveprotocol.box.server.robots.OperationContext;
 import org.waveprotocol.box.server.robots.util.OperationUtil;
 import org.waveprotocol.wave.model.conversation.ConversationBlip;
-import org.waveprotocol.wave.model.conversation.ConversationView;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
-import org.waveprotocol.wave.model.id.IdConstants;
-import org.waveprotocol.wave.model.id.IdUtil;
-import org.waveprotocol.wave.model.id.InvalidIdException;
-import org.waveprotocol.wave.model.id.ModernIdSerialiser;
-import org.waveprotocol.wave.model.id.WaveId;
-import org.waveprotocol.wave.model.id.WaveletId;
-import org.waveprotocol.wave.model.supplement.PrimitiveSupplement;
 import org.waveprotocol.wave.model.supplement.SupplementedWave;
-import org.waveprotocol.wave.model.supplement.SupplementedWaveImpl;
-import org.waveprotocol.wave.model.supplement.SupplementedWaveImpl.DefaultFollow;
-import org.waveprotocol.wave.model.supplement.WaveletBasedSupplement;
 import org.waveprotocol.wave.model.wave.ParticipantId;
-import org.waveprotocol.wave.model.wave.opbased.OpBasedWavelet;
 
 import java.util.Map;
 
@@ -94,39 +84,5 @@ public class FolderActionService implements OperationService {
     // Construct empty response.
     Map<ParamsProperty, Object> data = Maps.newHashMap();
     context.constructResponse(operation, data);
-  }
-
-  /**
-   * Builds the supplement model for a wave.
-   * 
-   * @param operation the operation.
-   * @param context the operation context.
-   * @param participant the viewer.
-   * @return the wave supplement.
-   * @throws InvalidRequestException if the wave id provided in the operation is invalid.
-   */
-  private SupplementedWave buildSupplement(OperationRequest operation, OperationContext context,
-      ParticipantId participant) throws InvalidRequestException {
-    OpBasedWavelet wavelet = context.openWavelet(operation, participant);
-    ConversationView conversationView = context.getConversationUtil().buildConversation(wavelet);
-
-    // TODO (Yuri Z.) Find a way to obtain an instance of IdGenerator and use it to create udwId.
-    WaveletId udwId =
-        WaveletId.of(participant.getDomain(),
-            IdUtil.join(IdConstants.USER_DATA_WAVELET_PREFIX, participant.getAddress()));
-    String waveIdStr = OperationUtil.getRequiredParameter(operation, ParamsProperty.WAVE_ID);
-    WaveId waveId = null;
-    try {
-      waveId = ModernIdSerialiser.INSTANCE.deserialiseWaveId(waveIdStr);
-    } catch (InvalidIdException e) {
-      throw new InvalidRequestException("Invalid WAVE_ID parameter: " + waveIdStr, operation, e);
-    }
-    OpBasedWavelet udw = context.openWavelet(waveId, udwId, participant);
-
-    PrimitiveSupplement udwState = WaveletBasedSupplement.create(udw);
-
-    SupplementedWave supplement =
-        SupplementedWaveImpl.create(udwState, conversationView, participant, DefaultFollow.ALWAYS);
-    return supplement;
   }
 }

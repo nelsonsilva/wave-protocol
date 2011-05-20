@@ -37,7 +37,7 @@ import org.waveprotocol.wave.model.conversation.ConversationBlip;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
 import org.waveprotocol.wave.model.conversation.ObservableConversationBlip;
 import org.waveprotocol.wave.model.conversation.ObservableConversationThread;
-import org.waveprotocol.wave.model.conversation.ConversationBlip.InlineReplyThread;
+import org.waveprotocol.wave.model.conversation.ConversationBlip.LocatedReplyThread;
 import org.waveprotocol.wave.model.document.Doc;
 import org.waveprotocol.wave.model.document.Document;
 import org.waveprotocol.wave.model.document.operation.DocInitialization;
@@ -122,7 +122,7 @@ public class BlipOperationServicesTest extends RobotsTestBase {
     ConversationBlip newBlip = checkAndGetNewBlip(context, conversation, response);
 
     Iterator<? extends ObservableConversationThread> it =
-        conversation.getRootThread().getFirstBlip().getAllReplyThreads().iterator();
+        conversation.getRootThread().getFirstBlip().getReplyThreads().iterator();
     assertEquals("New blip should be the first blip in the first reply thread",
         it.next().getFirstBlip(), newBlip);
   }
@@ -245,9 +245,9 @@ public class BlipOperationServicesTest extends RobotsTestBase {
 
     ConversationBlip newBlip = checkAndGetNewBlip(context, conversation, response);
 
-    Iterator<? extends InlineReplyThread<? extends ObservableConversationThread>> it =
-        conversation.getRootThread().getFirstBlip().getInlineReplyThreads().iterator();
-    InlineReplyThread<? extends ObservableConversationThread> inlineReplyThread = it.next();
+    Iterator<? extends LocatedReplyThread<? extends ObservableConversationThread>> it =
+        conversation.getRootThread().getFirstBlip().locateReplyThreads().iterator();
+    LocatedReplyThread<? extends ObservableConversationThread> inlineReplyThread = it.next();
 
     // The inline reply thread should be located just after the last line
     // element
@@ -282,9 +282,9 @@ public class BlipOperationServicesTest extends RobotsTestBase {
 
     ConversationBlip newBlip = checkAndGetNewBlip(context, conversation, response);
 
-    Iterator<? extends InlineReplyThread<? extends ObservableConversationThread>> it =
-        conversation.getRootThread().getFirstBlip().getInlineReplyThreads().iterator();
-    InlineReplyThread<? extends ObservableConversationThread> inlineReplyThread = it.next();
+    Iterator<? extends LocatedReplyThread<? extends ObservableConversationThread>> it =
+        conversation.getRootThread().getFirstBlip().locateReplyThreads().iterator();
+    LocatedReplyThread<? extends ObservableConversationThread> inlineReplyThread = it.next();
     assertEquals("The inline reply was not located where specified", insertAtXmlLocation,
         inlineReplyThread.getLocation());
   }
@@ -321,8 +321,8 @@ public class BlipOperationServicesTest extends RobotsTestBase {
 
     // The second InlineReplyThread is created by the BlipOperationService, it
     // should be located just after the first one.
-    Iterator<? extends InlineReplyThread<?>> it =
-        conversation.getRootThread().getFirstBlip().getInlineReplyThreads().iterator();
+    Iterator<? extends LocatedReplyThread<?>> it =
+        conversation.getRootThread().getFirstBlip().locateReplyThreads().iterator();
     // Inline blips have a length of 2.
     assertEquals("The inline reply was not located where specified", it.next().getLocation() + 2,
         it.next().getLocation());

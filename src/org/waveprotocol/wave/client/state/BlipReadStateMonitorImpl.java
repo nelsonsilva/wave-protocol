@@ -165,7 +165,7 @@ public final class BlipReadStateMonitorImpl extends ObservableSupplementedWave.L
     updateOrInsertReadUnread(blip);
 
     // Add all replies.
-    for (ObservableConversationThread replyThread : blip.getAllReplyThreads()) {
+    for (ObservableConversationThread replyThread : blip.getReplyThreads()) {
       handleThreadAdded(replyThread);
     }
   }
@@ -181,10 +181,8 @@ public final class BlipReadStateMonitorImpl extends ObservableSupplementedWave.L
     removeReadUnread(blip);
 
     // Remove all inline replies (non-inline replies will just be reanchored).
-    for (ObservableConversationThread replyThread : blip.getAllReplyThreads()) {
-      if (replyThread.isInline()) {
-        handleThreadRemoved(replyThread);
-      }
+    for (ObservableConversationThread replyThread : blip.getReplyThreads()) {
+      handleThreadRemoved(replyThread);
     }
   }
 

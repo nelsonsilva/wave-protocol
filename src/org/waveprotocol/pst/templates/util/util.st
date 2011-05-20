@@ -12,25 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package $m.package$;
 
 import $m.package$.$m.name$.*;
 
+$imports(m=m)$
+
 import org.waveprotocol.wave.communication.Blob;
 
 import java.util.Iterator;
 import java.util.List;
 
-$imports(m=m)$
-
 /**
  * Compares {@link $m.name$}s for equality.
  *
- * Do not edit.
- *
- * Generated from $m.filename$.
+ * Generated from $m.filename$.  Do not edit.
  */
 $class(m=m)$

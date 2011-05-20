@@ -55,7 +55,7 @@ public final class ReductionRuleRenderHelperEquivalenceTest extends TestCase {
       r.append(" id: " + blip.getId());
       r.append("; content: " + document);
       r.append("; anchors: [");
-      for (ConversationThread reply : blip.getAllReplyThreads()) {
+      for (ConversationThread reply : blip.getReplyThreads()) {
         r.append(" ");
         r.append(anchors.get(reply));
       }

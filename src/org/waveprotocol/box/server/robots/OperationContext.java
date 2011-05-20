@@ -18,8 +18,8 @@
 package org.waveprotocol.box.server.robots;
 
 import com.google.wave.api.InvalidRequestException;
-import com.google.wave.api.OperationRequest;
 import com.google.wave.api.JsonRpcConstant.ParamsProperty;
+import com.google.wave.api.OperationRequest;
 import com.google.wave.api.data.converter.EventDataConverter;
 import com.google.wave.api.event.Event;
 
@@ -94,8 +94,11 @@ public interface OperationContext {
   void putWavelet(WaveId waveId, WaveletId waveletId, RobotWaveletData newWavelet);
 
   /**
-   * Opens a wavelet for the given wave id and wavelet id.
-   *
+   * Opens a wavelet for the given wave id and wavelet id. Note: Usually if the
+   * wavelet for specified wavelet id doesn't exist - the method returns
+   * null. However, for user data wavelets the method will create a new empty one
+   * and return it.
+   * 
    * @param waveId the wave id of the wavelet to open.
    * @param waveletId the wavelet id of the wavelet to open.
    * @param participant the id of the participant that wants to open the
@@ -106,8 +109,11 @@ public interface OperationContext {
       throws InvalidRequestException;
 
   /**
-   * Opens the wavelet specified in the given operation.
-   *
+   * Opens the wavelet specified in the given operation. Note: Usually if the
+   * wavelet for specified wavelet id doesn't exist - the method returns
+   * null. However, for user data wavelets the method will create a new empty one
+   * and return it.
+   * 
    * @param operation the operation specifying which wavelet to open.
    * @param participant the id of the participant that wants to open the
    *        wavelet.

@@ -1,82 +1,50 @@
 $if (f.optional)$
 
-  /**
-   * Returns whether $f.name$ has been set.
-   *
-   * @return whether $f.name$ has been set
-   */
+  /** Returns whether $f.name$ has been set. */
   boolean has$f.capName$();
 
-  /**
-   * Clears the value of $f.name$.
-   */
+  /** Clears the value of $f.name$. */
   void clear$f.capName$();
 
 $endif$
 
 $if (f.repeated)$
 
-  /**
-   * Returns $f.name$, or null if hasn't been set.
-   *
-   * @return $f.name$, or null if hasn't been set
-   */
+  /** Returns $f.name$, or null if hasn't been set. */
   $if (f.message)$
     List<? extends $f.javaType$> $f.getter$();
   $else$
     List<$f.boxedJavaType$> $f.getter$();
   $endif$
 
-  /**
-   * Adds a list of elements to $f.name$.
-   */
+  /** Adds an element to $f.name$. */
+  void add$f.capName$($f.javaType$ value);
+
+  /** Adds a list of elements to $f.name$. */
   $if (f.message)$
     void addAll$f.capName$(List<? extends $f.javaType$> $f.name$);
   $else$
     void addAll$f.capName$(List<$f.boxedJavaType$> $f.name$);
   $endif$
 
-  /**
-   * Returns the nth element of $f.name$.
-   *
-   * @return the nth element of $f.name$
-   */
+  /** Returns the nth element of $f.name$. */
   $f.javaType$ $f.getter$(int n);
 
-  /**
-   * Sets the nth element of $f.name$.
-   */
+  /** Sets the nth element of $f.name$. */
   void $f.setter$(int n, $f.javaType$ value);
 
-  /**
-   * Returns the length of $f.name$.
-   *
-   * @return the length of $f.name$
-   */
+  /** Returns the length of $f.name$. */
   int $f.getter$Size();
 
-  /**
-   * Appends a value to $f.name$.
-   */
-  void add$f.capName$($f.javaType$ value);
-
-  /**
-   * Clears $f.name$.
-   */
+  /** Clears $f.name$. */
   void clear$f.capName$();
 
 $else$
 
-  /**
-   * Returns $f.name$, or null if hasn't been set.
-   *
-   * @return $f.name$, or null if hasn't been set
-   */
+  /** Returns $f.name$, or null if hasn't been set. */
   $f.javaType$ $f.getter$();
 
-  /**
-   * Sets $f.name$.
-   */
+  /** Sets $f.name$. */
   void $f.setter$($f.javaType$ $f.name$);
 
 $endif$

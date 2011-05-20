@@ -17,6 +17,9 @@
 
 package org.waveprotocol.box.server.robots;
 
+import static org.waveprotocol.box.server.robots.util.OperationUtil.buildUserDataWaveletId;
+import static org.waveprotocol.box.server.robots.util.RobotsUtil.createEmptyRobotWavelet;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.wave.api.ApiIdSerializer;
@@ -214,11 +217,20 @@ public class OperationContextImpl implements OperationContext, OperationResults 
       // Open a wavelet from the server
       CommittedWaveletSnapshot snapshot = getWaveletSnapshot(waveletName, participant);
       if (snapshot == null) {
-        throw new InvalidRequestException("Wavelet " + waveletName + " couldn't be retrieved");
+        if (waveletName.waveletId.equals(buildUserDataWaveletId(participant))) {
+          // Usually the user data is created by the web client whenever user
+          // opens a wavelet for the first time. However, if the wavelet is
+          // fetched for the first time with Robot/Data API - user data should be
+          // created here.
+          wavelet = createEmptyRobotWavelet(participant, waveletName);
+        } else {
+          throw new InvalidRequestException("Wavelet " + waveletName + " couldn't be retrieved");
+        }
+        
+      } else {
+        ObservableWaveletData obsWavelet = FACTORY.create(snapshot.snapshot);
+        wavelet = new RobotWaveletData(obsWavelet, snapshot.committedVersion);
       }
-
-      ObservableWaveletData obsWavelet = FACTORY.create(snapshot.snapshot);
-      wavelet = new RobotWaveletData(obsWavelet, snapshot.committedVersion);
       openedWavelets.put(waveletName, wavelet);
     }
     return wavelet.getOpBasedWavelet(participant);

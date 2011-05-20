@@ -12,16 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package $m.package$;
 
-$imports(m=m)$
-
 import static org.waveprotocol.wave.communication.gwt.JsonHelper.*;
 
 import com.google.gwt.core.client.*;
+
+$imports(m=m)$
 
 import org.waveprotocol.wave.communication.Blob;
 import org.waveprotocol.wave.communication.ProtoEnums;
@@ -37,8 +36,6 @@ import java.util.Set;
 /**
  * Client implementation of $m.name$ backed by a GWT JavaScriptObject.
  *
- * Do not edit.
- *
- * Generated from $m.filename$.
+ * Generated from $m.filename$.  Do not edit.
  */
 $class(m=m)$

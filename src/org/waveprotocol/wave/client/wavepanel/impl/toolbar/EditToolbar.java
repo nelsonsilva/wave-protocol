@@ -191,8 +191,18 @@ public class EditToolbar implements EditorUpdateListener {
 
     @Override
     public void update(Range range) {
-      button.setToggledOn(
-          Paragraph.appliesEntirely(editor.getDocument(), range.getStart(), range.getEnd(), style));
+      try {
+        button.setToggledOn(
+            Paragraph.appliesEntirely(editor.getDocument(),
+                range.getStart(), range.getEnd(), style));
+      } catch (IndexOutOfBoundsException e) {
+        // Catch exception to prevent client shiny.
+        // Workaround for issue WAVE-256. Please remove this try/catch block after
+        // the issue will be fixed.
+        // https://issues.apache.org/jira/browse/WAVE-256
+        // Paragraph.appliesEntirely is stateless, and only executes query
+        // methods on the document, so exceptions can not corrupt state.
+      }
     }
   }
 

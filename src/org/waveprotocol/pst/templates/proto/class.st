@@ -1,3 +1,5 @@
+// NOTE(kalman): It would be nicer to add a proto serialisation
+// utility rather than having this class at all.
 public $if(m.inner)$static$endif$ final class $m.javaType$
     implements $m.name$,
     // Note: fully-qualified path is required for GsonSerializable and ProtoWrapper.
@@ -24,7 +26,7 @@ public $if(m.inner)$static$endif$ final class $m.javaType$
 
   @Override
   public $m.protoType$ getPB() {
-    lazilySwitchToProto();
+    switchToProto();
     return proto;
   }
 
@@ -44,14 +46,14 @@ public $if(m.inner)$static$endif$ final class $m.javaType$
   $m.referencedMessages: {t|$messageHelpers(t=t)$}$
   $m.referencedEnums: {t|$enumHelpers(t=t)$}$
 
-  private void lazilySwitchToProto() {
+  private void switchToProto() {
     if (proto == null) {
       proto = protoBuilder.build();
       protoBuilder = null;
     }
   }
 
-  private void lazilySwitchToProtoBuilder() {
+  private void switchToProtoBuilder() {
     if (protoBuilder == null) {
       protoBuilder = (proto == null)
           ? $m.protoType$.newBuilder()

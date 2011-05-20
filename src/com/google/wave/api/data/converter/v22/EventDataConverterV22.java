@@ -28,7 +28,7 @@ import com.google.wave.api.impl.WaveletData;
 
 import org.waveprotocol.wave.model.conversation.Conversation;
 import org.waveprotocol.wave.model.conversation.ConversationBlip;
-import org.waveprotocol.wave.model.conversation.ConversationBlip.InlineReplyThread;
+import org.waveprotocol.wave.model.conversation.ConversationBlip.LocatedReplyThread;
 import org.waveprotocol.wave.model.conversation.ConversationThread;
 import org.waveprotocol.wave.model.wave.Wavelet;
 
@@ -73,18 +73,12 @@ public class EventDataConverterV22 extends EventDataConverterV21 {
 
     // Add the inline reply threads.
     List<String> threadIds = Lists.newLinkedList();
-    for (InlineReplyThread<? extends ConversationThread> thread : blip.getInlineReplyThreads()) {
+    for (LocatedReplyThread<? extends ConversationThread> thread : blip.locateReplyThreads()) {
       String replyThreadId = thread.getThread().getId();
       threadIds.add(replyThreadId);
       addThread(eventMessageBundle, thread.getThread(), thread.getLocation(), wavelet);
     }
 
-    // Add the non inline reply threads.
-    for (ConversationThread thread : blip.getReplyThreads()) {
-      String replyThreadId = thread.getId();
-      threadIds.add(replyThreadId);
-      addThread(eventMessageBundle, thread, -1, wavelet);
-    }
     blipData.setReplyThreadIds(threadIds);
     return blipData;
   }
@@ -99,14 +93,8 @@ public class EventDataConverterV22 extends EventDataConverterV21 {
   public List<ConversationBlip> findBlipChildren(ConversationBlip blip) {
     List<ConversationBlip> children = Lists.newArrayList();
     // Add all children from the inline reply threads.
-    for (InlineReplyThread<? extends ConversationThread> thread : blip.getInlineReplyThreads()) {
+    for (LocatedReplyThread<? extends ConversationThread> thread : blip.locateReplyThreads()) {
       for (ConversationBlip child : thread.getThread().getBlips()) {
-        children.add(child);
-      }
-    }
-    // Add all children from the non-inline reply threads.
-    for (ConversationThread reply : blip.getReplyThreads()) {
-      for (ConversationBlip child : reply.getBlips()) {
         children.add(child);
       }
     }
@@ -145,25 +133,23 @@ public class EventDataConverterV22 extends EventDataConverterV21 {
     }
 
     // Convert the XML offset into the text offset.
-    if (thread.isInline()) {
-      ConversationBlip parent = thread.getParentBlip();
+    ConversationBlip parent = thread.getParentBlip();
 
-      // Locate the thread, if necessary.
-      if (location == -1) {
-        for (InlineReplyThread<? extends ConversationThread> inlineReplyThread :
-          parent.getInlineReplyThreads()) {
-          if (thread.getId().equals(inlineReplyThread.getThread().getId())) {
-            location = inlineReplyThread.getLocation();
-            break;
-          }
+    // Locate the thread, if necessary.
+    if (location == -1) {
+      for (LocatedReplyThread<? extends ConversationThread> inlineReplyThread :
+        parent.locateReplyThreads()) {
+        if (thread.getId().equals(inlineReplyThread.getThread().getId())) {
+          location = inlineReplyThread.getLocation();
+          break;
         }
-      }
+      }     
+    }
 
-      // Use ApiView to convert the offset.
-      if (location != -1) {
-        ApiView apiView = new ApiView(parent.getContent(), wavelet);
-        location = apiView.transformToTextOffset(location);
-      }
+    // Use ApiView to convert the offset.
+    if (location != -1) {
+      ApiView apiView = new ApiView(parent.getContent(), wavelet);
+      location = apiView.transformToTextOffset(location);
     }
 
     // Get the ids of the contained blips.

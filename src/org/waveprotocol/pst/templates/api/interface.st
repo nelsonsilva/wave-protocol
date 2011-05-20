@@ -3,9 +3,7 @@ public interface $m.javaType$ {
   $m.nestedEnums: {e|$enum(e=e)$}$
   $m.nestedMessages: {nested|$interface(m=nested)$}$
 
-  /**
-   * Does a deep copy from model.
-   */
+  /** Does a deep copy from model. */
   void copyFrom($m.javaType$ model);
 
   /**
@@ -17,8 +15,8 @@ public interface $m.javaType$ {
    * <li>all corresponding nested-model fields of both objects are "equal".</li>
    * </ul>
    *
-   * This is a wider class of equivalence than provided by .equals() methods.  Two
-   * objects may not be .equal() to each other, but may be .isEqualTo() each other.
+   * This is a coarser equivalence than provided by the equals() methods.  Two
+   * objects may not be equal() to each other, but may be isEqualTo() each other.
    */
   boolean isEqualTo(Object o);
 

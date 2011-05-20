@@ -151,7 +151,7 @@ public class EventDataConverterV21 implements EventDataConverter {
     if (nextSibling != null) {
       siblings.add(nextSibling);
     }
-    for (ConversationThread reply : blip.getAllReplyThreads()) {
+    for (ConversationThread reply : blip.getReplyThreads()) {
       if (reply.getFirstBlip() != null) {
         siblings.add(reply.getFirstBlip());
       }

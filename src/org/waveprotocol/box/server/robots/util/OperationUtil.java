@@ -18,11 +18,12 @@
 package org.waveprotocol.box.server.robots.util;
 
 import com.google.common.base.Strings;
+import com.google.wave.api.ApiIdSerializer;
 import com.google.wave.api.InvalidRequestException;
+import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.OperationRequest;
 import com.google.wave.api.OperationType;
 import com.google.wave.api.ProtocolVersion;
-import com.google.wave.api.JsonRpcConstant.ParamsProperty;
 import com.google.wave.api.robot.RobotName;
 
 import org.waveprotocol.box.server.common.CoreWaveletOperationSerializer;
@@ -34,10 +35,22 @@ import org.waveprotocol.box.server.robots.operations.OperationService;
 import org.waveprotocol.box.server.waveserver.WaveletProvider;
 import org.waveprotocol.box.server.waveserver.WaveletProvider.SubmitRequestListener;
 import org.waveprotocol.wave.federation.Proto.ProtocolWaveletDelta;
+import org.waveprotocol.wave.model.conversation.ConversationView;
+import org.waveprotocol.wave.model.id.IdConstants;
+import org.waveprotocol.wave.model.id.IdUtil;
+import org.waveprotocol.wave.model.id.InvalidIdException;
+import org.waveprotocol.wave.model.id.WaveId;
+import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.WaveletName;
 import org.waveprotocol.wave.model.operation.wave.WaveletDelta;
+import org.waveprotocol.wave.model.supplement.PrimitiveSupplement;
+import org.waveprotocol.wave.model.supplement.SupplementedWave;
+import org.waveprotocol.wave.model.supplement.SupplementedWaveImpl;
+import org.waveprotocol.wave.model.supplement.SupplementedWaveImpl.DefaultFollow;
+import org.waveprotocol.wave.model.supplement.WaveletBasedSupplement;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
+import org.waveprotocol.wave.model.wave.opbased.OpBasedWavelet;
 import org.waveprotocol.wave.util.logging.Log;
 
 import java.util.List;
@@ -249,4 +262,49 @@ public class OperationUtil {
                   + " is not a valid participant address"), operation);
     }
   }
+  
+  /**
+   * Builds user data wavelet id.
+   */
+  public static WaveletId buildUserDataWaveletId(ParticipantId participant) {
+    WaveletId udwId =
+      WaveletId.of(participant.getDomain(),
+          IdUtil.join(IdConstants.USER_DATA_WAVELET_PREFIX, participant.getAddress()));
+    return udwId;
+  }
+  
+  /**
+   * Builds the supplement model for a wave.
+   * 
+   * @param operation the operation.
+   * @param context the operation context.
+   * @param participant the viewer.
+   * @return the wave supplement.
+   * @throws InvalidRequestException if the wave id provided in the operation is
+   *         invalid.
+   */
+  public static SupplementedWave buildSupplement(OperationRequest operation,
+      OperationContext context, ParticipantId participant) throws InvalidRequestException {
+    OpBasedWavelet wavelet = context.openWavelet(operation, participant);
+    ConversationView conversationView = context.getConversationUtil().buildConversation(wavelet);
+
+    // TODO (Yuri Z.) Find a way to obtain an instance of IdGenerator and use it
+    // to create udwId.
+    WaveletId udwId = buildUserDataWaveletId(participant);
+    String waveIdStr = OperationUtil.getRequiredParameter(operation, ParamsProperty.WAVE_ID);
+    WaveId waveId = null;
+    try {
+      waveId = ApiIdSerializer.instance().deserialiseWaveId(waveIdStr);
+    } catch (InvalidIdException e) {
+      throw new InvalidRequestException("Invalid WAVE_ID parameter: " + waveIdStr, operation, e);
+    }
+    OpBasedWavelet udw = context.openWavelet(waveId, udwId, participant);
+
+    PrimitiveSupplement udwState = WaveletBasedSupplement.create(udw);
+
+    SupplementedWave supplement =
+      SupplementedWaveImpl.create(udwState, conversationView, participant, DefaultFollow.ALWAYS);
+    return supplement;
+  }
+
 }
