@@ -67,7 +67,7 @@ public class EventDataConverterV21Test extends TestCase {
     Conversation conversation = makeConversation();
     ConversationBlip first = conversation.getRootThread().getFirstBlip();
     ConversationBlip second = conversation.getRootThread().appendBlip();
-    ConversationBlip reply = first.appendReplyThread().appendBlip();
+    ConversationBlip reply = first.addReplyThread().appendBlip();
     ConversationBlip secondReply = reply.getThread().appendBlip();
 
     EventDataConverterV21 converter = new EventDataConverterV21();
@@ -81,7 +81,7 @@ public class EventDataConverterV21Test extends TestCase {
     Conversation conversation = makeConversation();
     ConversationBlip first = conversation.getRootThread().getFirstBlip();
     ConversationBlip second = conversation.getRootThread().appendBlip();
-    ConversationBlip reply = first.appendReplyThread().appendBlip();
+    ConversationBlip reply = first.addReplyThread().appendBlip();
     ConversationBlip secondReply = reply.getThread().appendBlip();
 
     assertNull(EventDataConverterV21.findPreviousSibling(first));
@@ -94,7 +94,7 @@ public class EventDataConverterV21Test extends TestCase {
     Conversation conversation = makeConversation();
     ConversationBlip first = conversation.getRootThread().getFirstBlip();
     ConversationBlip second = conversation.getRootThread().appendBlip();
-    ConversationBlip reply = first.appendReplyThread().appendBlip();
+    ConversationBlip reply = first.addReplyThread().appendBlip();
     ConversationBlip secondReply = reply.getThread().appendBlip();
 
     assertSame(second, EventDataConverterV21.findNextSibling(first));

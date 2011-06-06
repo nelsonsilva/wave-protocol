@@ -76,7 +76,7 @@ public class ConversationCopierTest extends TestCase {
    */
   public void testReplyThreadCopy() {
     WaveletBasedConversationBlip blip = source.getRootThread().appendBlip();
-    WaveletBasedConversationThread conversationThread = blip.appendReplyThread();
+    WaveletBasedConversationThread conversationThread = blip.addReplyThread();
     Document doc = conversationThread.appendBlip().getContent();
     LineContainers.appendToLastLine(doc, XmlStringBuilder.createText(SAMPLE_TEXT));
     ConversationCopier.copyWaveletContents(sourceWavelet, destWavelet);

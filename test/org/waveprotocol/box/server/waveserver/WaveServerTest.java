@@ -112,7 +112,7 @@ public class WaveServerTest extends TestCase {
 
     waveletStore = new DeltaStoreBasedSnapshotStore(deltaStore);
     waveMap =
-        new WaveMap(waveletStore, notifiee, localWaveletContainerFactory,
+        new WaveMap(waveletStore, notifiee, notifiee, localWaveletContainerFactory,
             remoteWaveletContainerFactory, "example.com");
     waveServer =
         new WaveServerImpl(MoreExecutors.sameThreadExecutor(), certificateManager,

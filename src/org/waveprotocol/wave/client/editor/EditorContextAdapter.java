@@ -41,6 +41,14 @@ public class EditorContextAdapter implements EditorContext {
     this.editor = editor;
   }
 
+  /**
+   * @throws IllegalStateException if the current instance being wrapped is not
+   *         the given one.
+   */
+  public void checkEditor(EditorContext editor) {
+    Preconditions.checkState(this.editor == editor, "wrong editor");
+  }
+
   /** Silently switches the wrapped editor with a new instance. */
   public void switchEditor(EditorContext newEditor) {
     this.editor = newEditor;

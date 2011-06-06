@@ -72,20 +72,20 @@ public class BlipIteratorsTest extends TestCase {
     ConversationView convView = WaveBasedConversationView.create(waveView, idGenerator);
     Conversation conv = convView.createRoot();
     b1 = conv.getRootThread().appendBlip();
-    ConversationThread b1t1 = b1.appendReplyThread();
+    ConversationThread b1t1 = b1.addReplyThread();
     b1t1b1 = b1t1.appendBlip();
     b1t1b2 = b1t1.appendBlip();
-    ConversationThread b1t2 = b1.appendInlineReplyThread(
+    ConversationThread b1t2 = b1.addReplyThread(
         BlipTestUtils.getBodyPosition(b1) + 3);
     b1t2b1 = b1t1.appendBlip();
 
     b2_d = conv.getRootThread().appendBlip();
-    ConversationThread b2t1 = b2_d.appendReplyThread();
+    ConversationThread b2t1 = b2_d.addReplyThread();
     ConversationBlip b2t1b1 = b2t1.appendBlip();
     b2_d.delete();
 
     b3 = conv.getRootThread().appendBlip();
-    ConversationThread b3t1 = b3.appendReplyThread();
+    ConversationThread b3t1 = b3.addReplyThread();
     b3t1b1 = b3t1.appendBlip();
 
     return conv;

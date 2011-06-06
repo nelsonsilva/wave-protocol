@@ -301,7 +301,7 @@ public class BlipOperationServicesTest extends RobotsTestBase {
     Doc.E lastLine = DocHelper.getLastElementWithTagName(doc, LineContainers.LINE_TAGNAME);
     int lastLineLocation = doc.getLocation(Point.after(doc, lastLine));
     ObservableConversationBlip firstInlineBlip =
-        rootBlip.appendInlineReplyThread(lastLineLocation).appendBlip();
+        rootBlip.addReplyThread(lastLineLocation).appendBlip();
 
     // Append the inline blip to the root blip
     String rootBlipId = ConversationUtil.getRootBlipId(conversation);

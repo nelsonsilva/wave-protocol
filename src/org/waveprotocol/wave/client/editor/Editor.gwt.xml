@@ -13,8 +13,8 @@
 <inherits name="org.waveprotocol.wave.client.scheduler.Scheduler" />
 <inherits name="org.waveprotocol.wave.model.richtext.RichText" /> 
 
- <source path=""/>
- <source path="content"/>
+ <source path="" includes="*"/>
+ <source path="content" includes="*"/>
  <source path="content/img"/>
  <source path="content/misc"/>
  <source path="content/paragraph"/>
@@ -29,29 +29,4 @@
  <source path="sugg"/>
  <source path="util"/>
  <source path="webdriver"/>
-
-<!-- Deferred binding for Editor -->
-<!--  Default implementation: -->
-
-<!-- NOTE(danilatos): This stuff is still needed for UI Binder templates, unfortunately -->
-<!-- Delete when Editor is MVP-ified and the implentation is determined in the actual code -->
-
-<replace-with class="org.waveprotocol.wave.client.editor.EditorImpl">
-  <when-type-is class="org.waveprotocol.wave.client.editor.EditorImpl"/>
-</replace-with>
-
-<replace-with class="org.waveprotocol.wave.client.editor.EditorImplWebkitMobile">
-  <when-type-is class="org.waveprotocol.wave.client.editor.EditorImpl"/>
-  <any>
-    <when-property-is name="mobile.user.agent" value="iphone"/>
-    <when-property-is name="mobile.user.agent" value="android"/>
-  </any>
-</replace-with>
-
-<source path="">
-  <exclude name="harness/**" />
-  <exclude name="examples/**" />
-  <exclude name="testing/**" />
-  <exclude name="testtools/**" />
-</source>
 </module>

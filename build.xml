@@ -583,6 +583,7 @@
         <include name="com/google/common/**/*" />
         <include name="com/google/gson/**/*" />
         <include name="com/google/gxp/**/*" />
+        <include name="com/google/gwt/core/client/**/*" />
         <include name="com/google/gwt/logging/**/*" />
         <include name="com/google/gwt/user/server/**/*" />
         <include name="com/google/gwt/user/client/rpc/**/*" />

@@ -59,7 +59,7 @@ public final class ToolbarSwitcher implements EditSession.Listener {
     editSession.addListener(this);
     if (editSession.isEditing()) {
       startEditSession(editSession.getEditor());
-    } else {
+    } else if (panel.hasContents()) {
       startViewSession();
     }
   }

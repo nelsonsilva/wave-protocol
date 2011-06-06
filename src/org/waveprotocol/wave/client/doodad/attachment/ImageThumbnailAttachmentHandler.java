@@ -21,7 +21,6 @@ import org.waveprotocol.wave.client.doodad.attachment.SimpleAttachmentManager.At
 import org.waveprotocol.wave.client.doodad.attachment.SimpleAttachmentManager.UploadStatusCode;
 import org.waveprotocol.wave.client.doodad.attachment.render.ImageThumbnailRenderer;
 import org.waveprotocol.wave.client.doodad.attachment.render.ImageThumbnailView;
-import org.waveprotocol.wave.client.doodad.attachment.render.ImageThumbnailWrapper;
 import org.waveprotocol.wave.client.editor.content.ContentElement;
 import org.waveprotocol.wave.media.model.AttachmentV3.ImageMetadata;
 import org.waveprotocol.wave.model.util.CollectionUtils;
@@ -65,8 +64,11 @@ public class ImageThumbnailAttachmentHandler implements SimpleAttachmentManager.
     onUploadStatusUpdated(attachment);
   }
 
-  public void cleanup(ContentElement e) {
-    doodads.remove(ImageThumbnailWrapper.of(e).getAttachment());
+  /**
+   * Inverse of {@link #init}.
+   */
+  public void cleanup(ContentElement e, Attachment a) {
+    doodads.remove(a);
   }
 
   private ContentElement getElement(Attachment c) {

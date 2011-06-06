@@ -17,6 +17,8 @@
 
 package org.waveprotocol.box.server.waveserver;
 
+import com.google.common.base.Function;
+
 import org.waveprotocol.box.server.frontend.CommittedWaveletSnapshot;
 import org.waveprotocol.wave.federation.Proto.ProtocolAppliedWaveletDelta;
 import org.waveprotocol.wave.model.id.WaveletName;
@@ -24,6 +26,7 @@ import org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
 import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.ObservableWaveletData;
+import org.waveprotocol.wave.model.wave.data.ReadableWaveletData;
 
 import java.util.Collection;
 
@@ -53,6 +56,16 @@ interface WaveletContainer {
 
   /** Returns a snapshot of the wavelet state, last committed version. */
   CommittedWaveletSnapshot getSnapshot() throws WaveletStateException;
+  
+  /**
+   * Provides read access to the inner state of the {@link WaveletContainer}.
+   * 
+   * @param <T> the return type of the method.
+   * @param function the function to apply on the {@link ReadableWaveletData}.
+   * @return the output of the function.
+   * @throws WaveletStateException if the wavelet is in an unsuitable state.
+   */
+  <T> T applyFunction(Function<ReadableWaveletData, T> function) throws WaveletStateException;
 
   /**
    * Retrieve the wavelet history of deltas applied to the wavelet.

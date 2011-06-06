@@ -93,7 +93,7 @@ public final class ActionsImpl implements Actions {
     if (location == -1) {
       location = blip.getContent().size() - 1;
     }
-    ConversationBlip reply = blip.appendInlineReplyThread(location).appendBlip();
+    ConversationBlip reply = blip.addReplyThread(location).appendBlip();
     blipQueue.flush();
     focusAndEdit(views.getBlipView(reply));
   }

@@ -203,7 +203,7 @@ public class WaveMapTest extends TestCase {
 
     waveletStore = mock(DeltaAndSnapshotStore.class);
     waveMap =
-        new WaveMap(waveletStore, notifiee, localWaveletContainerFactory,
+        new WaveMap(waveletStore, notifiee, notifiee, localWaveletContainerFactory,
             remoteWaveletContainerFactory, "example.com");
   }
 
@@ -279,7 +279,7 @@ public class WaveMapTest extends TestCase {
     assertEquals(2, results.size());
   }
 
-  public void testSearchAllDoesNotReturnWaveWithoutSharedDomainUser() throws Exception {
+  public void testSearchAllReturnsWavesOnlyWithSharedDomainUser() throws Exception {
     WaveletName waveletName =
       WaveletName.of(WaveId.of(DOMAIN, String.valueOf(1)), WAVELET_ID);
     submitDeltaToNewWavelet(waveletName, USER1, addParticipantToWavelet(USER1));

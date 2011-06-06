@@ -17,6 +17,7 @@
 
 package org.waveprotocol.box.server.waveserver;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -298,9 +299,21 @@ abstract class WaveletContainerImpl implements WaveletContainer {
     acquireReadLock();
     try {
       checkStateOk();
-      ReadableWaveletData snapshot = waveletState.getSnapshot();
       return new CommittedWaveletSnapshot(waveletState.getSnapshot(),
           waveletState.getLastPersistedVersion());
+    } finally {
+      releaseReadLock();
+    }
+  }
+  
+  @Override
+  public <T> T applyFunction(Function<ReadableWaveletData, T> function)
+      throws WaveletStateException {
+    awaitLoad();
+    acquireReadLock();
+    try {
+      checkStateOk();
+      return function.apply(waveletState.getSnapshot());
     } finally {
       releaseReadLock();
     }

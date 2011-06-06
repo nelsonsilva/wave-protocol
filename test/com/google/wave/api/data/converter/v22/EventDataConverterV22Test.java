@@ -69,7 +69,7 @@ public class EventDataConverterV22Test extends TestCase {
     when(wavelet.getId()).thenReturn(WAVELET_ID);
 
     ConversationBlip blip = conversation.getRootThread().getFirstBlip();
-    String replyThreadId = blip.appendInlineReplyThread(3).getId();
+    String replyThreadId = blip.addReplyThread(3).getId();
 
     EventDataConverterV22 converter = new EventDataConverterV22();
     EventMessageBundle eventMessageBundle = new EventMessageBundle(null, null);
@@ -85,9 +85,9 @@ public class EventDataConverterV22Test extends TestCase {
   public void testFindBlipParent() {
     ConversationBlip first = conversation.getRootThread().getFirstBlip();
     ConversationBlip second = conversation.getRootThread().appendBlip();
-    ConversationBlip reply = first.appendReplyThread().appendBlip();
+    ConversationBlip reply = first.addReplyThread().appendBlip();
     ConversationBlip secondReply = reply.getThread().appendBlip();
-    ConversationBlip inlineReply = first.appendInlineReplyThread(3).appendBlip();
+    ConversationBlip inlineReply = first.addReplyThread(3).appendBlip();
 
     EventDataConverterV22 converter = new EventDataConverterV22();
     assertNull(converter.findBlipParent(first));
@@ -100,9 +100,9 @@ public class EventDataConverterV22Test extends TestCase {
   public void testFindBlipChildren() {
     ConversationBlip first = conversation.getRootThread().getFirstBlip();
     ConversationBlip second = conversation.getRootThread().appendBlip();
-    ConversationBlip reply = first.appendReplyThread().appendBlip();
+    ConversationBlip reply = first.addReplyThread().appendBlip();
     ConversationBlip secondReply = reply.getThread().appendBlip();
-    ConversationBlip inlineReply = first.appendInlineReplyThread(3).appendBlip();
+    ConversationBlip inlineReply = first.addReplyThread(3).appendBlip();
 
     EventDataConverterV22 converter = new EventDataConverterV22();
     assertEquals(0, converter.findBlipChildren(second).size());

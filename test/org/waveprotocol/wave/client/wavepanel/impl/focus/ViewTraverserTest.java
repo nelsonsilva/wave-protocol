@@ -66,11 +66,11 @@ public class ViewTraverserTest extends TestCase {
 
     void populate(ConversationBlip blip, FakeBlipView blipUi) {
       for (ThreadBuilder threadBuilder : unanchored) {
-        ConversationThread thread = blip.appendReplyThread();
+        ConversationThread thread = blip.addReplyThread();
         threadBuilder.populate(thread, blipUi.insertDefaultAnchorBefore(null, thread).getThread());
       }
       for (ThreadBuilder threadBuilder : anchored) {
-        ConversationThread thread = blip.appendInlineReplyThread(blip.getContent().size() - 1);
+        ConversationThread thread = blip.addReplyThread(blip.getContent().size() - 1);
         FakeAnchor anchor = blipUi.insertDefaultAnchorBefore(null, thread);
         FakeInlineThreadView threadUi = anchor.getThread();
         threadBuilder.populate(thread, threadUi);

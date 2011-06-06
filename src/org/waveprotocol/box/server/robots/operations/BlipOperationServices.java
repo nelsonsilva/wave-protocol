@@ -170,7 +170,7 @@ public class BlipOperationServices implements OperationService {
     String parentBlipId = OperationUtil.getRequiredParameter(operation, ParamsProperty.BLIP_ID);
     ConversationBlip parentBlip = context.getBlip(conversation, parentBlipId);
 
-    ConversationBlip newBlip = parentBlip.appendReplyThread().appendBlip();
+    ConversationBlip newBlip = parentBlip.addReplyThread().appendBlip();
     context.putBlip(blipData.getBlipId(), newBlip);
 
     putContentForNewBlip(newBlip, blipData.getContent());
@@ -232,7 +232,7 @@ public class BlipOperationServices implements OperationService {
 
     // Insert new inline thread with the blip at the empty sentence.
     int location = doc.getLocation(Point.after(doc, line));
-    ConversationBlip newBlip = parentBlip.appendInlineReplyThread(location).appendBlip();
+    ConversationBlip newBlip = parentBlip.addReplyThread(location).appendBlip();
     context.putBlip(blipData.getBlipId(), newBlip);
 
     putContentForNewBlip(newBlip, blipData.getContent());
@@ -306,7 +306,7 @@ public class BlipOperationServices implements OperationService {
     int xmlLocation = view.transformToXmlOffset(index);
 
     // Insert new inline thread with the blip at the location as specified.
-    ConversationBlip newBlip = parentBlip.appendInlineReplyThread(xmlLocation).appendBlip();
+    ConversationBlip newBlip = parentBlip.addReplyThread(xmlLocation).appendBlip();
     context.putBlip(blipData.getBlipId(), newBlip);
 
     putContentForNewBlip(newBlip, blipData.getContent());
@@ -350,7 +350,7 @@ public class BlipOperationServices implements OperationService {
     int xmlLocation = view.transformToXmlOffset(elementApiLocation + 1);
 
     // Insert new inline thread with the blip at the location of the element.
-    ConversationBlip newBlip = parentBlip.appendInlineReplyThread(xmlLocation).appendBlip();
+    ConversationBlip newBlip = parentBlip.addReplyThread(xmlLocation).appendBlip();
     context.putBlip(blipData.getBlipId(), newBlip);
 
     putContentForNewBlip(newBlip, blipData.getContent());

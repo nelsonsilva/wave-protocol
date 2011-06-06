@@ -101,7 +101,7 @@ public class ThreadReadStateMonitorTest extends TestCase {
    */
   public void testEmptyInlineThread() throws Exception {
     ConversationBlip rb1 = rootThread.appendBlip();
-    ConversationThread t1 = rb1.appendInlineReplyThread(0);
+    ConversationThread t1 = rb1.addReplyThread(0);
     assertEquals(1, monitor.getTotalCount(rootThread));
     assertEquals(0, monitor.getTotalCount(t1));
   }
@@ -112,16 +112,16 @@ public class ThreadReadStateMonitorTest extends TestCase {
    */
   public void testNestedThreadBlips() throws Exception {
     ConversationBlip rb1 = rootThread.appendBlip();
-    ConversationThread t1 = rb1.appendInlineReplyThread(0);
+    ConversationThread t1 = rb1.addReplyThread(0);
     t1.appendBlip();
     t1.appendBlip();
 
     ConversationBlip rb2 = rootThread.appendBlip();
-    ConversationThread t2 = rb2.appendInlineReplyThread(0);
+    ConversationThread t2 = rb2.addReplyThread(0);
     t2.appendBlip();
     ConversationBlip t2b2 = t2.appendBlip();
 
-    ConversationThread t3 = t2b2.appendReplyThread();
+    ConversationThread t3 = t2b2.addReplyThread();
     t3.appendBlip();
 
     assertEquals(2, monitor.getTotalCount(t1));
@@ -136,16 +136,16 @@ public class ThreadReadStateMonitorTest extends TestCase {
    */
   public void testNestedThreadDeleteBlip() throws Exception {
     ConversationBlip rb1 = rootThread.appendBlip();
-    ConversationThread t1 = rb1.appendInlineReplyThread(0);
+    ConversationThread t1 = rb1.addReplyThread(0);
     t1.appendBlip();
     t1.appendBlip();
 
     ConversationBlip rb2 = rootThread.appendBlip();
-    ConversationThread t2 = rb2.appendInlineReplyThread(0);
+    ConversationThread t2 = rb2.addReplyThread(0);
     t2.appendBlip();
     ConversationBlip t2b2 = t2.appendBlip();
 
-    ConversationThread t3 = t2b2.appendReplyThread();
+    ConversationThread t3 = t2b2.addReplyThread();
     t3.appendBlip();
 
     t2b2.delete();
@@ -181,16 +181,16 @@ public class ThreadReadStateMonitorTest extends TestCase {
    */
   public void testNestedThreadReading() throws Exception {
     ConversationBlip rb1 = rootThread.appendBlip();
-    ConversationThread t1 = rb1.appendInlineReplyThread(0);
+    ConversationThread t1 = rb1.addReplyThread(0);
     t1.appendBlip();
     t1.appendBlip();
 
     ConversationBlip rb2 = rootThread.appendBlip();
-    ConversationThread t2 = rb2.appendInlineReplyThread(0);
+    ConversationThread t2 = rb2.addReplyThread(0);
     t2.appendBlip();
     ConversationBlip t2b2 = t2.appendBlip();
 
-    ConversationThread t3 = t2b2.appendReplyThread();
+    ConversationThread t3 = t2b2.addReplyThread();
     ConversationBlip t3b1 = t3.appendBlip();
 
     supplementedWave.markAsRead(t3b1);
@@ -214,16 +214,16 @@ public class ThreadReadStateMonitorTest extends TestCase {
    */
   public void testNestedThreadWithDeleteReading() throws Exception {
     ConversationBlip rb1 = rootThread.appendBlip();
-    ConversationThread t1 = rb1.appendInlineReplyThread(0);
+    ConversationThread t1 = rb1.addReplyThread(0);
     t1.appendBlip();
     ConversationBlip t1b2 = t1.appendBlip();
 
     ConversationBlip rb2 = rootThread.appendBlip();
-    ConversationThread t2 = rb2.appendInlineReplyThread(0);
+    ConversationThread t2 = rb2.addReplyThread(0);
     t2.appendBlip();
     ConversationBlip t2b2 = t2.appendBlip();
 
-    ConversationThread t3 = t2b2.appendReplyThread();
+    ConversationThread t3 = t2b2.addReplyThread();
     t3.appendBlip();
     ConversationBlip t3b1 = t3.appendBlip();
 

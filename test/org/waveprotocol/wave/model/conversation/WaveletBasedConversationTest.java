@@ -286,14 +286,14 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testAppendNonInlineRepliesUpdatesManifest() {
     WaveletBasedConversationBlip blip = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread firstReply = blip.appendReplyThread();
+    WaveletBasedConversationThread firstReply = blip.addReplyThread();
     WaveletBasedConversationBlip firstReplyBlip = firstReply.appendBlip();
     assertManifestXml("<blip id=\"" + blip.getId() + "\">" +
         "<thread id=\"" + firstReply.getId() + "\">" +
           "<blip id=\"" + firstReplyBlip.getId() + "\"></blip>" +
         "</thread>" +
         "</blip>");
-    WaveletBasedConversationThread secondReply = blip.appendReplyThread();
+    WaveletBasedConversationThread secondReply = blip.addReplyThread();
     WaveletBasedConversationBlip secondReplyBlip = secondReply.appendBlip();
     assertManifestXml("<blip id=\"" + blip.getId() + "\">" +
         "<thread id=\"" + firstReply.getId() + "\">" +
@@ -308,7 +308,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testAppendBlipsInReplyThreadsUpdatesManifest() {
     WaveletBasedConversationBlip blip = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread reply = blip.appendReplyThread();
+    WaveletBasedConversationThread reply = blip.addReplyThread();
     WaveletBasedConversationBlip firstReplyBlip = reply.appendBlip();
     WaveletBasedConversationBlip secondReplyBlip = reply.appendBlip();
 
@@ -323,7 +323,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testAppendInlineReplyUpdatesManifest() {
     WaveletBasedConversationBlip blip = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread reply = blip.appendInlineReplyThread(locateAfterLineElement(
+    WaveletBasedConversationThread reply = blip.addReplyThread(locateAfterLineElement(
         blip.getContent()));
     WaveletBasedConversationBlip replyBlip = reply.appendBlip();
     assertManifestXml("<blip id=\"" + blip.getId() + "\">" +
@@ -347,7 +347,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testDeleteBlipWithInlineReplyUpdatesManifest() {
     WaveletBasedConversationBlip blip = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread reply = blip.appendInlineReplyThread(
+    WaveletBasedConversationThread reply = blip.addReplyThread(
         BlipTestUtils.getBodyPosition(blip) + 3);
     WaveletBasedConversationBlip replyBlip = reply.appendBlip();
 
@@ -363,10 +363,10 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
   // Bug 2220263.
   public void testDeleteLastBlipInThreadRemovesThread() {
     ConversationBlip rootBlip = target.getRootThread().appendBlip();
-    ConversationThread topThread = rootBlip.appendReplyThread();
+    ConversationThread topThread = rootBlip.addReplyThread();
     ConversationBlip topBlip = topThread.appendBlip();
 
-    ConversationThread firstReply = topBlip.appendReplyThread();
+    ConversationThread firstReply = topBlip.addReplyThread();
     firstReply.appendBlip().delete();
 
     assertNull(topBlip.getReplyThread(firstReply.getId()));
@@ -395,9 +395,9 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
     WaveletBasedConversationBlip firstBlip = target.getRootThread().appendBlip();
     WaveletBasedConversationBlip secondBlip = target.getRootThread().appendBlip();
 
-    WaveletBasedConversationThread firstReply = firstBlip.appendReplyThread();
+    WaveletBasedConversationThread firstReply = firstBlip.addReplyThread();
     WaveletBasedConversationBlip firstReplyFirstBlip = firstReply.appendBlip();
-    final WaveletBasedConversationThread secondReply = firstBlip.appendInlineReplyThread(
+    final WaveletBasedConversationThread secondReply = firstBlip.addReplyThread(
         BlipTestUtils.getBodyPosition(firstBlip) + 1);
     WaveletBasedConversationBlip secondReplyFirstBlip = secondReply.appendBlip();
 
@@ -439,7 +439,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
    */
   public void testCreateWithEmptyManifestThreadNotIgnored() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
 
     WaveletBasedConversation another = mirrorConversation(target);
     assertNotNull(another.getRootThread().getFirstBlip());
@@ -502,7 +502,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
   // Bug 2268864.
   public void testObsoleteThreadThenRestoreRemoveBlipDoesntDie() {
     WaveletBasedConversationBlip first = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread willBecomeEmpty = first.appendReplyThread();
+    WaveletBasedConversationThread willBecomeEmpty = first.addReplyThread();
     ConversationBlip toggleBlip = willBecomeEmpty.appendBlip();
     String toggleBlipId = toggleBlip.getId();
 
@@ -520,11 +520,11 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testRemoveRestoreThreadAfterObsoleteThreadDoesntDie() {
     WaveletBasedConversationBlip first = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread reply11 = first.appendReplyThread();
+    WaveletBasedConversationThread reply11 = first.addReplyThread();
     ConversationBlip blip1 = reply11.appendBlip();
     String blip1Id = blip1.getId();
 
-    WaveletBasedConversationThread reply2 = first.appendReplyThread();
+    WaveletBasedConversationThread reply2 = first.addReplyThread();
 
     // Make first thread empty by removing its blip.
     ManifestBlip manifestRootBlip = target.getManifest().getRootThread().getBlip(0);
@@ -547,7 +547,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testGetBlipRetrievesBlip() {
     WaveletBasedConversationBlip blip = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread reply = blip.appendReplyThread();
+    WaveletBasedConversationThread reply = blip.addReplyThread();
     WaveletBasedConversationBlip replyBlip = reply.appendBlip();
 
     assertSame(blip, target.getBlip(blip.getId()));
@@ -561,7 +561,7 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testConcrrentDeletionOfFinalBlipsLeavesEmptyThread() {
     WaveletBasedConversationBlip first = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread replyThread = first.appendReplyThread();
+    WaveletBasedConversationThread replyThread = first.addReplyThread();
     WaveletBasedConversationBlip b1 = replyThread.appendBlip();
     WaveletBasedConversationBlip b2 = replyThread.appendBlip();
 
@@ -594,9 +594,9 @@ public class WaveletBasedConversationTest extends ConversationTestBase {
 
   public void testConcurrentDeletionOfFinalThreadsLeavesEmptyBlip() {
     WaveletBasedConversationBlip first = target.getRootThread().appendBlip();
-    WaveletBasedConversationThread t1 = first.appendReplyThread();
+    WaveletBasedConversationThread t1 = first.addReplyThread();
     WaveletBasedConversationBlip t1b = t1.appendBlip();
-    WaveletBasedConversationThread t2 = first.appendReplyThread();
+    WaveletBasedConversationThread t2 = first.addReplyThread();
     WaveletBasedConversationBlip t2b = t2.appendBlip();
 
     // Locally delete t1, remotely delete t2.

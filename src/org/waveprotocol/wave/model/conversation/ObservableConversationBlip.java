@@ -45,8 +45,8 @@ public interface ObservableConversationBlip extends ConversationBlip {
 
 
   @Override
-  ObservableConversationThread appendReplyThread();
+  ObservableConversationThread addReplyThread();
 
   @Override
-  ObservableConversationThread appendInlineReplyThread(int location);
+  ObservableConversationThread addReplyThread(int location);
 }

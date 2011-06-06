@@ -258,7 +258,7 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
   }
 
   @Override
-  public WaveletBasedConversationThread appendReplyThread() {
+  public WaveletBasedConversationThread addReplyThread() {
     checkIsUsable();
     String id = helper.createThreadId();
     manifestBlip.appendReply(id, false);
@@ -266,7 +266,7 @@ final class WaveletBasedConversationBlip implements ObservableConversationBlip,
   }
 
   @Override
-  public WaveletBasedConversationThread appendInlineReplyThread(final int location) {
+  public WaveletBasedConversationThread addReplyThread(final int location) {
     checkIsUsable();
     final String threadId = helper.createThreadId();
     createInlineReplyAnchor(threadId, location);

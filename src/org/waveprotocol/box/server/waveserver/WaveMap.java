@@ -19,6 +19,7 @@ package org.waveprotocol.box.server.waveserver;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -26,6 +27,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -33,17 +35,26 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
+import org.waveprotocol.box.common.DeltaSequence;
 import org.waveprotocol.box.common.ExceptionalIterator;
 import org.waveprotocol.box.server.CoreSettings;
 import org.waveprotocol.box.server.persistence.PersistenceException;
 import org.waveprotocol.box.server.util.WaveletDataUtil;
+import org.waveprotocol.box.server.waveserver.WaveBus.Subscriber;
 import org.waveprotocol.wave.model.id.IdUtil;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.WaveletName;
+import org.waveprotocol.wave.model.operation.wave.AddParticipant;
+import org.waveprotocol.wave.model.operation.wave.RemoveParticipant;
+import org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
+import org.waveprotocol.wave.model.operation.wave.WaveletOperation;
+import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
+import org.waveprotocol.wave.model.wave.ParticipantIdUtil;
 import org.waveprotocol.wave.model.wave.data.ObservableWaveletData;
+import org.waveprotocol.wave.model.wave.data.ReadableWaveletData;
 import org.waveprotocol.wave.model.wave.data.WaveViewData;
 import org.waveprotocol.wave.model.wave.data.impl.WaveViewDataImpl;
 import org.waveprotocol.wave.util.logging.Log;
@@ -60,6 +71,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A collection of wavelets, local and remote, held in memory.
@@ -67,7 +79,7 @@ import java.util.concurrent.Executors;
  * @author soren@google.com (Soren Lassen)
  */
 public class WaveMap implements SearchProvider {
-
+  
   /**
    * Helper class that allows to add basic sort and filter functionality to the
    * search.
@@ -534,13 +546,71 @@ public class WaveMap implements SearchProvider {
     lookupExecutor.execute(task);
     return task;
   }
-
+  
+  /**
+   * The period of time in minutes the per user waves view should be actively
+   * kept up to date after last access.
+   */
+  private static final int PER_USER_WAVES_VIEW_CACHE_TIME = 5;
+  
   private final ConcurrentMap<WaveId, Wave> waves;
   private final WaveletStore<?> store;
+
+  /** The computing map that holds wave viev per each online user.*/
+  private final ConcurrentMap<ParticipantId, Multimap<WaveId, WaveletId>> explicitPerUserWaveViews;
+  
+  private final ParticipantId sharedDomainParticipantId;
+  
+  private final Subscriber subscriber = new Subscriber() {
+    
+    @Override
+    public void waveletUpdate(ReadableWaveletData wavelet, DeltaSequence deltas) {
+      WaveletId waveletId = wavelet.getWaveletId();
+      if (IdUtil.isUserDataWavelet(waveletId)) {
+        return;
+      }
+      // Find whether participants where added/removed and update the views
+      // accordingly.
+      for (TransformedWaveletDelta delta : deltas) {
+        for (WaveletOperation op : delta) {
+          if (op instanceof AddParticipant) {
+            ParticipantId user = ((AddParticipant) op).getParticipantId();
+            // Check first if we need to update views for this user.
+            if (explicitPerUserWaveViews.containsKey(user)) {
+              Multimap<WaveId, WaveletId> perUserView = explicitPerUserWaveViews.get(user);
+              WaveId waveId = wavelet.getWaveId();
+              if (!perUserView.containsEntry(waveId, waveletId)) {
+                perUserView.put(waveId, waveletId);
+                LOG.fine("Added wavelet: " + WaveletName.of(waveId, waveletId)
+                    + " to the view of user: " + user.getAddress());
+              }
+            }
+          } else if (op instanceof RemoveParticipant) {
+            ParticipantId user = ((RemoveParticipant) op).getParticipantId();
+            if (explicitPerUserWaveViews.containsKey(user)) {
+              Multimap<WaveId, WaveletId> perUserView = explicitPerUserWaveViews.get(user);
+              WaveId waveId = wavelet.getWaveId();
+              if (perUserView.containsEntry(waveId, waveletId)) {
+                perUserView.remove(waveId, waveletId);
+                LOG.fine("Removed walet: " + WaveletName.of(waveId, waveletId)
+                    + " from the view of user: " + user.getAddress());
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    @Override
+    public void waveletCommitted(WaveletName waveletName, HashedVersion version) {
+      // No op.
+    }
+  };
 
   @Inject
   public WaveMap(final DeltaAndSnapshotStore waveletStore,
       final WaveletNotificationSubscriber notifiee,
+      WaveBus dispatcher,
       final LocalWaveletContainer.Factory localFactory,
       final RemoteWaveletContainer.Factory remoteFactory,
       @Named(CoreSettings.WAVE_SERVER_DOMAIN) final String waveDomain) {
@@ -548,17 +618,54 @@ public class WaveMap implements SearchProvider {
     // helps Guice out.
     // TODO(soren): inject a proper executor (with a pool of configurable size)
     this.store = waveletStore;
+    sharedDomainParticipantId = ParticipantIdUtil.makeUnsafeSharedDomainParticipantId(waveDomain);
+    dispatcher.subscribe(subscriber);
     final Executor lookupExecutor = Executors.newSingleThreadExecutor();
-    waves = new MapMaker().makeComputingMap(
-        new Function<WaveId, Wave>() {
-          @Override
-          public Wave apply(WaveId waveId) {
-            ListenableFuture<ImmutableSet<WaveletId>> lookedupWavelets =
-                lookupWavelets(waveId, waveletStore, lookupExecutor);
-            return new Wave(waveId, lookedupWavelets, notifiee, localFactory, remoteFactory,
-                waveDomain);
-          }
-        });
+    waves = new MapMaker().makeComputingMap(new Function<WaveId, Wave>() {
+      @Override
+      public Wave apply(WaveId waveId) {
+        ListenableFuture<ImmutableSet<WaveletId>> lookedupWavelets =
+            lookupWavelets(waveId, waveletStore, lookupExecutor);
+        return new Wave(waveId, lookedupWavelets, notifiee, localFactory, remoteFactory,
+            waveDomain);
+      }
+    });
+
+    // Let the view expire if it not accessed for some time.
+    explicitPerUserWaveViews =
+        new MapMaker().expireAfterAccess(PER_USER_WAVES_VIEW_CACHE_TIME, TimeUnit.MINUTES)
+            .makeComputingMap(new Function<ParticipantId, Multimap<WaveId, WaveletId>>() {
+
+              @Override
+              public Multimap<WaveId, WaveletId> apply(final ParticipantId user) {
+                Multimap<WaveId, WaveletId> userView = HashMultimap.create();
+
+                // Create initial per user waves view by looping over all waves
+                // in the waves store.
+                // After that the view is maintained up to date continuously in
+                // the subscriber.waveletUpdate method until the user logs of
+                // and the key is expired.
+                // On the next login the waves view will be rebuild.
+                for (Map.Entry<WaveId, Wave> entry : waves.entrySet()) {
+                  Wave wave = entry.getValue();
+                  for (WaveletContainer c : wave) {
+                    WaveletId waveletId = c.getWaveletName().waveletId;
+                    try {
+                      if (IdUtil.isUserDataWavelet(waveletId) || !c.hasParticipant(user)) {
+                        continue;
+                      }
+                      // Add this wave to the user view.
+                      userView.put(entry.getKey(), waveletId);
+                    } catch (WaveletStateException e) {
+                      LOG.warning("Failed to access wavelet " + c.getWaveletName(), e);
+                    }
+                  }
+                }
+                LOG.info("Initalized waves view for user: " + user.getAddress()
+                    + ", number of waves in view: " + userView.size());
+                return userView;
+              }
+            });
   }
 
   /**
@@ -579,7 +686,7 @@ public class WaveMap implements SearchProvider {
   }
 
   @Override
-  public Collection<WaveViewData> search(ParticipantId user, String query, int startAt,
+  public Collection<WaveViewData> search(final ParticipantId user, String query, int startAt,
       int numResults) {
     LOG.fine("Search query '" + query + "' from user: " + user + " [" + startAt + ", "
         + (startAt + numResults - 1) + "]");
@@ -591,8 +698,8 @@ public class WaveMap implements SearchProvider {
       LOG.warning("Invalid Query. " + e1.getMessage());
       return Collections.emptyList();
     }
-    List<ParticipantId> withParticipantIds = null;
-    List<ParticipantId> creatorParticipantIds = null;
+    final List<ParticipantId> withParticipantIds;
+    final List<ParticipantId> creatorParticipantIds;
     try {
       String localDomain = user.getDomain();
       // Build and validate.
@@ -607,45 +714,70 @@ public class WaveMap implements SearchProvider {
       LOG.warning("Invalid participantId: " + e.getAddress() + " in query: " + query);
       return Collections.emptyList();
     }
-    // Maybe should be changed in case other folders in addition to 'inbox' are added.
-    boolean isAllQuery =
-        !queryParams.containsKey(QueryHelper.TokenQueryType.IN);
+    // Maybe should be changed in case other folders in addition to 'inbox' are
+    // added.
+    final boolean isAllQuery = !queryParams.containsKey(QueryHelper.TokenQueryType.IN);
+
+    // A function to be applied by the WaveletContainer.
+    Function<ReadableWaveletData, Boolean> matchesFunction =
+        new Function<ReadableWaveletData, Boolean>() {
+
+          @Override
+          public Boolean apply(ReadableWaveletData wavelet) {
+            try {
+              return matches(wavelet, user, sharedDomainParticipantId, withParticipantIds,
+                  creatorParticipantIds, isAllQuery);
+            } catch (WaveletStateException e) {
+              LOG.warning(
+                  "Failed to access wavelet "
+                      + WaveletName.of(wavelet.getWaveId(), wavelet.getWaveletId()), e);
+              return false;
+            }
+          }
+        };
+    Multimap<WaveId, WaveletId> currentUserWavesView;
+    if (isAllQuery) {
+      // If it is the "all" query - we need to include also waves view of the
+      // shared domain participant.
+      currentUserWavesView = HashMultimap.create();
+      currentUserWavesView.putAll(explicitPerUserWaveViews.get(user));
+      currentUserWavesView.putAll(explicitPerUserWaveViews.get(sharedDomainParticipantId));
+    } else {
+      currentUserWavesView = explicitPerUserWaveViews.get(user);
+    }
     // Must use a map with stable ordering, since indices are meaningful.
     Map<WaveId, WaveViewData> results = Maps.newLinkedHashMap();
-    for (Map.Entry<WaveId, Wave> entry : waves.entrySet()) {
-      WaveId waveId = entry.getKey();
-      Wave wave = entry.getValue();
-      WaveViewData view = null;  // Copy of the wave built up for search hits.
+
+    // Loop over the user waves view.
+    for (WaveId waveId : currentUserWavesView.keySet()) {
+      Wave wave = waves.get(waveId);
+      WaveViewData view = null; // Copy of the wave built up for search hits.
       for (WaveletContainer c : wave) {
         // TODO (Yuri Z.) This loop collects all the wavelets that match the
         // query, so the view is determined by the query. Instead we should
         // look at the user's wave view and determine if the view matches the query.
-        ParticipantId sharedDomainParticipantId = c.getSharedDomainParticipant();
         try {
-          // TODO (Yuri Z.) Need to explore how to avoid this copy, e.g., by
-          // moving parts of the matches() logic into a WaveletContainer method.
-          ObservableWaveletData wavelet = c.copyWaveletData();
-          // Only filtering by participants is implemented for now.
-          if (!matches(wavelet, user, sharedDomainParticipantId, withParticipantIds,
-              creatorParticipantIds, isAllQuery)) {
+          if (!c.applyFunction(matchesFunction)) {
             continue;
           }
           if (view == null) {
             view = WaveViewDataImpl.create(waveId);
           }
           // Just keep adding all the relevant wavelets in this wave.
-          view.addWavelet(wavelet);
+          view.addWavelet(c.copyWaveletData());
         } catch (WaveletStateException e) {
           LOG.warning("Failed to access wavelet " + c.getWaveletName(), e);
         }
       }
-      // Filter out waves without conversational root wavelet from search result.
-      if (WaveletDataUtil.hasConversationalRootWavelet(view)) {
-        results.put(waveId, view);
+      if (view != null) {
+	  results.put(waveId, view);
       }
+      // TODO (Yuri Z.) Investigate if it worth to keep the waves views sorted
+      // by LMT so we can stop looping after we have (startAt + numResults)
+      // results.
     }
     List<WaveViewData> searchResultslist = null;
-    int searchResultSize =  results.values().size();
+    int searchResultSize = results.values().size();
     // Check if we have enough results to return.
     if (searchResultSize < startAt) {
       searchResultslist = Collections.emptyList();
@@ -664,14 +796,16 @@ public class WaveMap implements SearchProvider {
 
   /**
    * Verifies whether the wavelet matches the filter criteria.
-   *
+   * 
    * @param wavelet the wavelet.
    * @param user the logged in user.
+   * @param sharedDomainParticipantId the shared domain participant id.
    * @param withList the list of participants to be used in 'with' filter.
    * @param creatorList the list of participants to be used in 'creator' filter.
-   * @param isAllQuery true if the search results should include shared for this domain waves.
+   * @param isAllQuery true if the search results should include shared for this
+   *        domain waves.
    */
-  private boolean matches(ObservableWaveletData wavelet, ParticipantId user,
+  private boolean matches(ReadableWaveletData wavelet, ParticipantId user,
       ParticipantId sharedDomainParticipantId, List<ParticipantId> withList,
       List<ParticipantId> creatorList, boolean isAllQuery) throws WaveletStateException {
     // If it is user data wavelet for the user - return true.
@@ -692,8 +826,8 @@ public class WaveMap implements SearchProvider {
     }
     // Or if it is an 'all' query - then either logged in user or shared domain
     // participant should be present in the wave.
-    if (isAllQuery &&
-        !WaveletDataUtil.checkAccessPermission(wavelet, user, sharedDomainParticipantId)) {
+    if (isAllQuery
+        && !WaveletDataUtil.checkAccessPermission(wavelet, user, sharedDomainParticipantId)) {
       return false;
     }
     // If not returned 'false' above - then logged in user is either

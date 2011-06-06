@@ -147,20 +147,20 @@ public final class ReductionRuleRenderHelperEquivalenceTest extends TestCase {
 
   private static void sampleReply(ConversationBlip blip) {
     sampleContent(blip.getContent());
-    ConversationThread thread = blip.appendInlineReplyThread(5);
+    ConversationThread thread = blip.addReplyThread(5);
     thread.appendBlip();
     thread.appendBlip();
   }
 
   private static void biggerSampleReply(ConversationBlip blip) {
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     sampleReply(thread.appendBlip());
     sampleReply(thread.appendBlip());
     thread.appendBlip();
   }
 
   private static void biggestSampleReply(ConversationBlip blip) {
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     biggerSampleReply(thread.appendBlip());
     biggerSampleReply(thread.appendBlip());
     thread.appendBlip();

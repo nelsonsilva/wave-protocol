@@ -84,7 +84,10 @@ public class ImageThumbnailRenderer extends GwtRenderingMutationHandler {
 
   @Override
   public void onDeactivated(ContentElement element) {
-    attachmentHandler.cleanup(element);
+    ImageThumbnailWrapper w = ImageThumbnailWrapper.of(element);
+    if (w.getAttachment() != null) {
+      attachmentHandler.cleanup(element, w.getAttachment());
+    }
     element.setProperty(ImageThumbnailWrapper.PROPERTY, null);
   }
 
@@ -99,9 +102,10 @@ public class ImageThumbnailRenderer extends GwtRenderingMutationHandler {
       assert w != null;
 
       Attachment newAttachment = manager.getAttachment(newValue);
-      if (newAttachment != w.getAttachment()) {
-        if (w.getAttachment() != null) {
-          attachmentHandler.cleanup(element);
+      Attachment oldAttachment = w.getAttachment();
+      if (newAttachment != oldAttachment) {
+        if (oldAttachment != null) {
+          attachmentHandler.cleanup(element, oldAttachment);
         }
         if (newAttachment != null) {
           ImageThumbnailWrapper.of(element).setAttachment(newAttachment);

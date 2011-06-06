@@ -77,9 +77,9 @@ public final class WaveRendererTest extends TestCase {
     ConversationBlip b2 = c.getRootThread().appendBlip();
     write(b1, "First blip");
     write(b2, "Second blip");
-    ConversationThread b1t1 = b1.appendInlineReplyThread(5);
+    ConversationThread b1t1 = b1.addReplyThread(5);
     write(b1t1.appendBlip(), "First reply");
-    ConversationThread b1t2 = b1.appendReplyThread();
+    ConversationThread b1t2 = b1.addReplyThread();
     write(b1t2.appendBlip(), "Second reply");
 
     return wave;

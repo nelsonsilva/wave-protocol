@@ -325,13 +325,13 @@ public class UndercurrentHarness implements EntryPoint {
 
     private static void sampleReply(ConversationBlip blip) {
       write(blip);
-      ConversationThread thread = blip.appendInlineReplyThread(8);
+      ConversationThread thread = blip.addReplyThread(8);
       write(thread.appendBlip());
     }
 
     private static void biggerSampleReply(ConversationBlip blip) {
       write(blip);
-      ConversationThread thread = blip.appendReplyThread();
+      ConversationThread thread = blip.addReplyThread();
       sampleReply(thread.appendBlip());
       sampleReply(thread.appendBlip());
       write(thread.appendBlip());

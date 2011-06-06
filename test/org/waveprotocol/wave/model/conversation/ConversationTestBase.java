@@ -236,12 +236,12 @@ public abstract class ConversationTestBase extends TestCase {
 
   public void testAppendRepliesAppendsRepliesToBlip() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread t1 = blip.appendReplyThread();
+    ConversationThread t1 = blip.addReplyThread();
     // Append blips to get a new ID for the next thread.
     t1.appendBlip();
-    ConversationThread t2 = blip.appendReplyThread();
+    ConversationThread t2 = blip.addReplyThread();
     t2.appendBlip();
-    ConversationThread t3 = blip.appendReplyThread();
+    ConversationThread t3 = blip.addReplyThread();
     t3.appendBlip();
 
     assertSame(blip, t1.getParentBlip());
@@ -253,7 +253,7 @@ public abstract class ConversationTestBase extends TestCase {
     ConversationBlip blip = target.getRootThread().appendBlip();
     MutableDocument<?, ?, ?> doc = blip.getContent();
     int location = locateAfterLineElement(doc);
-    ConversationThread thread = blip.appendInlineReplyThread(location);
+    ConversationThread thread = blip.addReplyThread(location);
 
     assertSame(blip, thread.getParentBlip());
     assertEquals(Collections.singletonList(LocatedReplyThread.of(thread, location)),
@@ -265,7 +265,7 @@ public abstract class ConversationTestBase extends TestCase {
     ConversationBlip blip = target.getRootThread().appendBlip();
     MutableDocument<?, ?, ?> doc = blip.getContent();
     final int location = locateAfterLineElement(doc);
-    ConversationThread thread = blip.appendInlineReplyThread(location);
+    ConversationThread thread = blip.addReplyThread(location);
 
     // Duplicate the anchor.
     doc.with(new Action() {
@@ -293,7 +293,7 @@ public abstract class ConversationTestBase extends TestCase {
         N textNode = doc.getFirstChild(bodyNode);
         textNode = doc.getNextSibling(textNode);
         int replyLocation = doc.getLocation(Point.inText(textNode, 1));
-        blip.appendInlineReplyThread(replyLocation);
+        blip.addReplyThread(replyLocation);
 
         // Insert text to give abc|d
         startText = Point.before(doc, textNode);
@@ -317,7 +317,7 @@ public abstract class ConversationTestBase extends TestCase {
         N textNode = doc.getFirstChild(bodyNode);
         textNode = doc.getNextSibling(textNode);
         int replyLocation = doc.getLocation(Point.inText(textNode, 1));
-        ConversationThread replyThread = blip.appendInlineReplyThread(replyLocation);
+        ConversationThread replyThread = blip.addReplyThread(replyLocation);
 
         // Delete text and anchor.
         doc.deleteRange(Point.before(doc, textNode),
@@ -335,13 +335,13 @@ public abstract class ConversationTestBase extends TestCase {
       public <N, E extends N, T extends N> void exec(MutableDocument<N, E, T> doc) {
         Point<N> startText = doc.locate(locateAfterLineElement(doc));
         int replyLocation = doc.getLocation(startText);
-        ConversationThread t1 = blip.appendInlineReplyThread(replyLocation);
+        ConversationThread t1 = blip.addReplyThread(replyLocation);
         t1.appendBlip();
         // In front of t1.
-        ConversationThread t2 = blip.appendInlineReplyThread(replyLocation);
+        ConversationThread t2 = blip.addReplyThread(replyLocation);
         t2.appendBlip();
         // In front of the others.
-        ConversationThread t3 = blip.appendInlineReplyThread(replyLocation);
+        ConversationThread t3 = blip.addReplyThread(replyLocation);
         t3.appendBlip();
 
         // Delete t3's anchor.
@@ -368,7 +368,7 @@ public abstract class ConversationTestBase extends TestCase {
   }
 
   public void testDeleteSingleNonRootThreadBlipRemovesIt() {
-    ConversationThread thread = target.getRootThread().appendBlip().appendReplyThread();
+    ConversationThread thread = target.getRootThread().appendBlip().addReplyThread();
     ConversationBlip unDeleted = thread.appendBlip();
     ConversationBlip blip = thread.appendBlip();
     blip.delete();
@@ -387,7 +387,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testCanAppendAfterDeletingRootThreadReplies() {
     ConversationBlip first = target.getRootThread().appendBlip();
     ConversationBlip second = target.getRootThread().appendBlip();
-    ConversationThread reply = first.appendReplyThread();
+    ConversationThread reply = first.addReplyThread();
     reply.appendBlip();
 
     second.delete();
@@ -412,7 +412,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testDeleteBlipWithInlineReplyDeletesReply() {
     ConversationBlip blip = target.getRootThread().appendBlip();
     MutableDocument<?, ?, ?> doc = blip.getContent();
-    ConversationThread reply = blip.appendInlineReplyThread(locateAfterLineElement(doc));
+    ConversationThread reply = blip.addReplyThread(locateAfterLineElement(doc));
     ConversationBlip replyBlip = reply.appendBlip();
 
     blip.delete();
@@ -424,14 +424,14 @@ public abstract class ConversationTestBase extends TestCase {
   public void testDeleteBlipWithManyRepliesDeletesReplies() {
     ConversationBlip blip = target.getRootThread().appendBlip();
     MutableDocument<?, ?, ?> doc = blip.getContent();
-    ConversationThread reply1 = blip.appendReplyThread();
+    ConversationThread reply1 = blip.addReplyThread();
     // Append blips to get a new ID for the next thread.
     reply1.appendBlip();
-    ConversationThread inlineReply1 = blip.appendInlineReplyThread(locateAfterLineElement(doc));
+    ConversationThread inlineReply1 = blip.addReplyThread(locateAfterLineElement(doc));
     inlineReply1.appendBlip();
-    ConversationThread reply2 = blip.appendReplyThread();
+    ConversationThread reply2 = blip.addReplyThread();
     reply2.appendBlip();
-    ConversationThread inlineReply2 = blip.appendInlineReplyThread(locateAfterLineElement(doc));
+    ConversationThread inlineReply2 = blip.addReplyThread(locateAfterLineElement(doc));
     inlineReply2.appendBlip();
 
     blip.delete();
@@ -465,7 +465,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testDeleteConversationInvalidatesNonRootThreads() {
     ObservableConversationBlip outerBlip = target.getRootThread().appendBlip();
     ObservableConversationThread inlineThread =
-      outerBlip.appendInlineReplyThread(locateAfterLineElement(outerBlip.getContent()));
+      outerBlip.addReplyThread(locateAfterLineElement(outerBlip.getContent()));
     ObservableConversationBlip innerBlip = inlineThread.appendBlip();
     target.addListener(convListener);
     target.delete();
@@ -477,7 +477,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testDeleteConversationEvents() {
     ObservableConversationBlip outerBlip = target.getRootThread().appendBlip();
     ObservableConversationThread inlineThread =
-      outerBlip.appendInlineReplyThread(locateAfterLineElement(outerBlip.getContent()));
+      outerBlip.addReplyThread(locateAfterLineElement(outerBlip.getContent()));
     ObservableConversationBlip innerBlip = inlineThread.appendBlip();
     target.addListener(convListener);
     target.delete();
@@ -497,10 +497,10 @@ public abstract class ConversationTestBase extends TestCase {
    */
   public void testDeleteBlipDeletesRepliesToInlineReply() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread inlineReply = blip.appendInlineReplyThread(locateAfterLineElement(
+    ConversationThread inlineReply = blip.addReplyThread(locateAfterLineElement(
         blip.getContent()));
     ConversationBlip inlineReplyBlip = inlineReply.appendBlip();
-    ConversationThread nonInlineReplyToReply = inlineReplyBlip.appendReplyThread();
+    ConversationThread nonInlineReplyToReply = inlineReplyBlip.addReplyThread();
     ConversationBlip nonInlineReplyBlip = nonInlineReplyToReply.appendBlip();
 
     blip.delete();
@@ -513,7 +513,7 @@ public abstract class ConversationTestBase extends TestCase {
 
   public void testDeleteLastBlipInNonRootThreadDeletesThread() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread replyThread = blip.appendReplyThread();
+    ConversationThread replyThread = blip.addReplyThread();
     ConversationBlip replyBlip = replyThread.appendBlip();
 
     replyBlip.delete();
@@ -524,15 +524,15 @@ public abstract class ConversationTestBase extends TestCase {
 
   // Bug 2220263.
   public void testCanReplyAfterDeletingReplyThread() {
-    ConversationThread topThread = target.getRootThread().appendBlip().appendReplyThread();
+    ConversationThread topThread = target.getRootThread().appendBlip().addReplyThread();
     ConversationBlip topBlip = topThread.appendBlip();
     // Add two reply threads. Delete the second (by deleting its blip).
-    ConversationThread firstReply = topBlip.appendReplyThread();
+    ConversationThread firstReply = topBlip.addReplyThread();
     firstReply.appendBlip();
-    ConversationThread secondReply = topBlip.appendReplyThread();
+    ConversationThread secondReply = topBlip.addReplyThread();
     secondReply.appendBlip().delete();
     // Reply again. This used to throw IndexOutOfBounds.
-    ConversationThread replacementReply = topBlip.appendReplyThread();
+    ConversationThread replacementReply = topBlip.addReplyThread();
     ConversationBlip replacementBlip = replacementReply.appendBlip();
 
     assertBlipValid(replacementBlip);
@@ -543,7 +543,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testDeleteInlineReplyDeletesAnchor() {
     ConversationBlip blip = target.getRootThread().appendBlip();
     XmlStringBuilder xmlBefore = XmlStringBuilder.innerXml(blip.getContent());
-    ConversationThread inlineReply = blip.appendInlineReplyThread(locateAfterLineElement(
+    ConversationThread inlineReply = blip.addReplyThread(locateAfterLineElement(
         blip.getContent()));
     ConversationBlip inlineReplyBlip = inlineReply.appendBlip();
 
@@ -567,7 +567,7 @@ public abstract class ConversationTestBase extends TestCase {
 
   public void testDeleteNonRootThreadRemovesAllBlipsAndThread() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread replyThread = blip.appendReplyThread();
+    ConversationThread replyThread = blip.addReplyThread();
     ConversationBlip replyBlip1 = replyThread.appendBlip();
     ConversationBlip replyBlip2 = replyThread.appendBlip();
 
@@ -581,7 +581,7 @@ public abstract class ConversationTestBase extends TestCase {
 
   public void testDeleteEmptyThread() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread replyThread = blip.appendReplyThread();
+    ConversationThread replyThread = blip.addReplyThread();
 
     replyThread.delete();
     assertFalse(blip.getReplyThreads().iterator().hasNext());
@@ -611,7 +611,7 @@ public abstract class ConversationTestBase extends TestCase {
    */
   public void testBlipWithThreadCanBeAccessedAfterDeletion() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     blip.delete();
 
     assertBlipInvalid(blip);
@@ -629,7 +629,7 @@ public abstract class ConversationTestBase extends TestCase {
    */
   public void testThreadCanBeAccessedAfterDeletion() {
     ConversationBlip blip = target.getRootThread().appendBlip();
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     ConversationBlip replyBlip = thread.appendBlip();
     thread.delete();
 
@@ -724,7 +724,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testThreadRemovalFiresEvent() {
     ObservableConversation mirror = mirrorConversation(target);
     ObservableConversationBlip b1 = target.getRootThread().appendBlip();
-    ObservableConversationThread t1 = b1.appendReplyThread();
+    ObservableConversationThread t1 = b1.addReplyThread();
     ObservableConversationThread t1mirror = mirror.getRootThread().getFirstBlip()
         .getReplyThreads().iterator().next();
 
@@ -764,7 +764,7 @@ public abstract class ConversationTestBase extends TestCase {
 
     mirror.addListener(convListener);
 
-    b1.appendReplyThread();
+    b1.addReplyThread();
     ObservableConversationThread t1mirror = b1mirror.getReplyThreads().iterator().next();
     verify(convListener).onThreadAdded(t1mirror);
 
@@ -794,7 +794,7 @@ public abstract class ConversationTestBase extends TestCase {
     //    |- t1
     //       |- b2
     ObservableConversationBlip b1 = target.getRootThread().appendBlip();
-    ObservableConversationThread t1 = b1.appendReplyThread();
+    ObservableConversationThread t1 = b1.addReplyThread();
     ObservableConversationBlip b2 = t1.appendBlip();
 
     ObservableConversationBlip b1mirror = mirror.getRootThread().getFirstBlip();
@@ -823,7 +823,7 @@ public abstract class ConversationTestBase extends TestCase {
   public void testRemovedListenersReceiveNoEvents() {
     ObservableConversation mirror = mirrorConversation(target);
     ObservableConversationBlip b1 = target.getRootThread().appendBlip();
-    ObservableConversationThread t1 = b1.appendReplyThread();
+    ObservableConversationThread t1 = b1.addReplyThread();
     ObservableConversationBlip b2 = t1.appendBlip();
 
     ObservableConversationBlip b1mirror = mirror.getRootThread().getFirstBlip();
@@ -880,7 +880,7 @@ public abstract class ConversationTestBase extends TestCase {
    */
   protected static void populate(Conversation conv) {
     ConversationBlip blip = conv.getRootThread().appendBlip();
-    blip.appendReplyThread().appendBlip();
+    blip.addReplyThread().appendBlip();
   }
 
   protected static <N> int locateAfterLineElement(MutableDocument<N, ?, ?> doc) {

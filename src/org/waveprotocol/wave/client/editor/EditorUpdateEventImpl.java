@@ -17,6 +17,8 @@
 
 package org.waveprotocol.wave.client.editor;
 
+import com.google.gwt.core.client.GWT;
+
 import org.waveprotocol.wave.client.scheduler.Scheduler;
 import org.waveprotocol.wave.client.scheduler.Scheduler.IncrementalTask;
 import org.waveprotocol.wave.client.scheduler.Scheduler.Priority;
@@ -39,7 +41,18 @@ public class EditorUpdateEventImpl implements EditorUpdateEvent {
   /** Schedule interval for internal throttling */
   private static final int INITIAL_NOTIFY_SCHEDULE_DELAY_MS = 20;
 
-  private static final int NOTIFY_SCHEDULE_DELAY_GAP_MS = 500;
+  // This is used, among other things, for updating toolbar buttons, which
+  // typically involve annotation queries, which are quite slow.
+  // In non-compiled mode, a single button update is on the order of 10ms. In
+  // compiled mode, it is more in the order of 1ms.
+  // With ~40 buttons to update, there is significant lag in non-compiled
+  // mode. This is addressed by rate-limiting the updates, with a very large
+  // delay in compiled mode. In non-compiled mode, frequent lag of ~50ms is
+  // noticeable, and so we still rate limit the updates, but with a more
+  // generous speed.
+  // Update at most twice per second in compiled mode, but much less
+  // frequently in non-compiled mode.
+  private static final int NOTIFY_SCHEDULE_DELAY_GAP_MS = GWT.isScript() ? 500 : 2000;
 
   /** Set of objects listening in to our editor */
   private final CopyOnWriteSet<EditorUpdateEvent.EditorUpdateListener> updateListeners =

@@ -67,20 +67,20 @@ public abstract class BlockStructureTestBase extends TestCase {
   }
 
   private static void sampleReply(ConversationBlip blip) {
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     thread.appendBlip();
     thread.appendBlip();
   }
 
   private static void biggerSampleReply(ConversationBlip blip) {
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     sampleReply(thread.appendBlip());
     sampleReply(thread.appendBlip());
     thread.appendBlip();
   }
 
   private static void biggestSampleReply(ConversationBlip blip) {
-    ConversationThread thread = blip.appendReplyThread();
+    ConversationThread thread = blip.addReplyThread();
     biggerSampleReply(thread.appendBlip());
     biggerSampleReply(thread.appendBlip());
     thread.appendBlip();

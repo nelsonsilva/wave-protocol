@@ -124,18 +124,19 @@ public interface ConversationBlip {
    * appends.
    */
   Iterable<? extends ConversationThread> getReplyThreads();
-
+ 
   /**
-   * Creates a new reply thread to this blip, after any existing replies.
+   * Creates a new reply thread and adds it to this blip after any existing replies.  The thread
+   * will be anchored at the end of this blip.
    */
-  ConversationThread appendReplyThread();
+  ConversationThread addReplyThread();
 
   /**
-   * Creates a new inline reply thread to this blip.
+   * Creates a new reply thread and adds it to this blip at a specific location.
    *
    * @param location location within the blip content at which to anchor
    */
-  ConversationThread appendInlineReplyThread(int location);
+  ConversationThread addReplyThread(int location);
 
   /**
    * Gets the content of this blip.
