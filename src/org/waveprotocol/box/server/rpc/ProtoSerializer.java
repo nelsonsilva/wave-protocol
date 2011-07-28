@@ -43,6 +43,8 @@ import org.waveprotocol.box.common.comms.proto.ProtocolSubmitResponseProtoImpl;
 import org.waveprotocol.box.common.comms.proto.ProtocolWaveletUpdateProtoImpl;
 import org.waveprotocol.box.common.comms.proto.WaveViewSnapshotProtoImpl;
 import org.waveprotocol.box.common.comms.proto.WaveletSnapshotProtoImpl;
+import org.waveprotocol.box.profile.ProfilesProto.ProfileResponse;
+import org.waveprotocol.box.profile.proto.ProfileResponseProtoImpl;
 import org.waveprotocol.box.search.SearchProto.SearchResponse;
 import org.waveprotocol.box.search.proto.SearchResponseProtoImpl;
 import org.waveprotocol.box.server.rpc.Rpc.CancelRpc;
@@ -153,6 +155,7 @@ public final class ProtoSerializer {
     add(RpcFinished.class, RpcFinishedProtoImpl.class);
 
     add(SearchResponse.class, SearchResponseProtoImpl.class);
+    add(ProfileResponse.class, ProfileResponseProtoImpl.class);
   }
 
   /** Adds a binding between a proto class and a DTO message class. */

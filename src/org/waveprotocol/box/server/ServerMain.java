@@ -49,12 +49,14 @@ import org.waveprotocol.box.server.robots.dataapi.DataApiServlet;
 import org.waveprotocol.box.server.robots.passive.RobotsGateway;
 import org.waveprotocol.box.server.rpc.AttachmentServlet;
 import org.waveprotocol.box.server.rpc.AuthenticationServlet;
+import org.waveprotocol.box.server.rpc.FetchProfilesServlet;
 import org.waveprotocol.box.server.rpc.FetchServlet;
 import org.waveprotocol.box.server.rpc.SearchServlet;
 import org.waveprotocol.box.server.rpc.ServerRpcProvider;
 import org.waveprotocol.box.server.rpc.SignOutServlet;
 import org.waveprotocol.box.server.rpc.UserRegistrationServlet;
 import org.waveprotocol.box.server.rpc.WaveClientServlet;
+import org.waveprotocol.box.server.rpc.WaveRefServlet;
 import org.waveprotocol.box.server.waveserver.WaveBus;
 import org.waveprotocol.box.server.waveserver.WaveServerException;
 import org.waveprotocol.box.server.waveserver.WaveletProvider;
@@ -212,6 +214,8 @@ public class ServerMain {
     server.addServlet("/robot/register/*", RobotRegistrationServlet.class);
     server.addServlet("/robot/rpc", ActiveApiServlet.class);
     server.addServlet("/webclient/remote_logging", RemoteLoggingServiceImpl.class);
+    server.addServlet("/profile/*", FetchProfilesServlet.class);
+    server.addServlet("/waveref/*", WaveRefServlet.class);
 
     String gadgetHostName =
         injector

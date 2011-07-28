@@ -28,6 +28,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SplitLayoutPanel;
@@ -39,6 +40,7 @@ import org.waveprotocol.box.webclient.client.events.WaveCreationEvent;
 import org.waveprotocol.box.webclient.client.events.WaveCreationEventHandler;
 import org.waveprotocol.box.webclient.client.events.WaveSelectionEvent;
 import org.waveprotocol.box.webclient.client.events.WaveSelectionEventHandler;
+import org.waveprotocol.box.webclient.profile.RemoteProfileManagerImpl;
 import org.waveprotocol.box.webclient.search.RemoteSearchService;
 import org.waveprotocol.box.webclient.search.Search;
 import org.waveprotocol.box.webclient.search.SearchPanelRenderer;
@@ -51,7 +53,6 @@ import org.waveprotocol.box.webclient.widget.error.ErrorIndicatorPresenter;
 import org.waveprotocol.box.webclient.widget.frame.FramedPanel;
 import org.waveprotocol.box.webclient.widget.loading.LoadingIndicator;
 import org.waveprotocol.wave.client.account.ProfileManager;
-import org.waveprotocol.wave.client.account.impl.ProfileManagerImpl;
 import org.waveprotocol.wave.client.common.safehtml.SafeHtml;
 import org.waveprotocol.wave.client.common.safehtml.SafeHtmlBuilder;
 import org.waveprotocol.wave.client.common.util.AsyncHolder.Accessor;
@@ -83,7 +84,8 @@ public class WebClient implements EntryPoint {
   // Please also see WebClientDemo.gwt.xml.
   private static final Logger REMOTE_LOG = Logger.getLogger("REMOTE_LOG");
 
-  private final ProfileManager profiles = new ProfileManagerImpl();
+  /** Provides user profile data, like avatar URL and user display name.*/
+  private final ProfileManager profiles = new RemoteProfileManagerImpl();
 
   @UiField
   SplitLayoutPanel splitPanel;
@@ -191,7 +193,7 @@ public class WebClient implements EntryPoint {
           }
         };
     Search search = SimpleSearch.create(RemoteSearchService.create(), waveStore);
-    SearchPresenter.create(search, searchPanel, selectHandler);
+    SearchPresenter.create(search, searchPanel, selectHandler, profiles);
   }
 
   private void setupWavePanel() {
@@ -209,6 +211,9 @@ public class WebClient implements EntryPoint {
 
   private void setupConnectionIndicator() {
     ClientEvents.get().addNetworkStatusEventHandler(new NetworkStatusEventHandler() {
+
+      boolean isTurbulenceDetected = false;
+
       @Override
       public void onNetworkStatus(NetworkStatusEvent event) {
         Element element = Document.get().getElementById("netstatus");
@@ -218,10 +223,16 @@ public class WebClient implements EntryPoint {
             case RECONNECTED:
               element.setInnerText("Online");
               element.setClassName("online");
+              isTurbulenceDetected = false;
               break;
             case DISCONNECTED:
               element.setInnerText("Offline");
               element.setClassName("offline");
+              if (!isTurbulenceDetected) {
+                isTurbulenceDetected = true;
+                Window.alert("A turbulence detected!"
+                    + " Please save your last changes to somewhere and reload the wave.");
+              }
               break;
             case RECONNECTING:
               element.setInnerText("Connecting...");

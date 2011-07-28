@@ -17,9 +17,11 @@
 
 package org.waveprotocol.box.server.robots.operations;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.wave.api.Element;
+import com.google.wave.api.ElementType;
 import com.google.wave.api.Gadget;
 import com.google.wave.api.InvalidRequestException;
 import com.google.wave.api.OperationRequest;
@@ -32,10 +34,10 @@ import com.google.wave.api.data.ApiView.ElementInfo;
 import com.google.wave.api.impl.DocumentModifyAction;
 import com.google.wave.api.impl.DocumentModifyAction.BundledAnnotation;
 import com.google.wave.api.impl.DocumentModifyAction.ModifyHow;
+import com.google.wave.api.impl.DocumentModifyQuery;
 
 import org.waveprotocol.box.server.robots.RobotsTestBase;
 import org.waveprotocol.box.server.robots.testing.OperationServiceHelper;
-import org.waveprotocol.wave.client.gadget.GadgetXmlUtil;
 import org.waveprotocol.wave.model.conversation.ObservableConversationBlip;
 import org.waveprotocol.wave.model.document.Document;
 import org.waveprotocol.wave.model.document.util.LineContainers;
@@ -159,6 +161,64 @@ public class DocumentModifyServiceTest extends RobotsTestBase {
     assertEquals(1, size);
     assertEquals(gadgetUrl, gadget.getUrl());
     assertEquals(ALEX.getAddress(), gadget.getAuthor());
+  }
+  
+  public void testUpdateGadget() throws Exception {
+    String propertyName = "propertyName";
+    String propertyValue = "propertyValue";
+
+    String propertyNameToDelete = "propertyNameToDelete";
+    String propertyValueToDelete = "propertyValueToDelete";
+
+    String gadgetUrl = "http://wave-api.appspot.com/public/gadgets/areyouin/gadget.xml";
+    String gadgetXml =
+        "<gadget author=\"" + ALEX.getAddress() + "\" prefs=\"\" state=\"\" title=\"\" " 
+        + "url=\"" + gadgetUrl + "\">" 
+        + "<state name=\"author\" value=\"" + ALEX.getAddress()+ "\"/>"
+        + "<state name=\"url\" " + "value=\"" + gadgetUrl + "\"/>" 
+        + "<state name=\"" + propertyName + "\" value=\"" + propertyValue + "\"/>"
+        + "<state name=\"" + propertyNameToDelete + "\" value=\"" + propertyValueToDelete + "\"/>"
+        + "</gadget>";
+
+    ObservableConversationBlip rootBlip = getRootBlip();
+    rootBlipId = rootBlip.getId();
+    LineContainers.appendToLastLine(rootBlip.getContent(),
+        XmlStringBuilder.createFromXmlString(gadgetXml));
+
+    List<Element> updatedElementsIn = Lists.newArrayListWithCapacity(1);
+    Map<String, String> newProperties = Maps.newHashMap();
+
+    String updatedPropertyValue = "updatedPropertyValue";
+    newProperties.put(propertyName, updatedPropertyValue);
+    String newPropertyName = "newPropertyName";
+    String newPropertyValue = "newPropertyValue";
+    newProperties.put(newPropertyName, newPropertyValue);
+    newProperties.put(propertyNameToDelete, null);
+    updatedElementsIn.add(new Gadget(newProperties));
+
+    OperationRequest updateOperation =
+        operationRequest(OperationType.DOCUMENT_MODIFY, rootBlipId,
+            Parameter.of(ParamsProperty.MODIFY_ACTION, 
+                new DocumentModifyAction(ModifyHow.UPDATE_ELEMENT,
+                NO_VALUES, NO_ANNOTATION_KEY, updatedElementsIn, NO_BUNDLED_ANNOTATIONS, false)),
+            Parameter.of(ParamsProperty.MODIFY_QUERY, new DocumentModifyQuery(ElementType.GADGET,
+                ImmutableMap.of("url", gadgetUrl), 1)));
+
+    service.execute(updateOperation, helper.getContext(), ALEX);
+
+    Gadget gadget = null;
+    List<ElementInfo> elementsOut = getApiView().getElements();
+    for (ElementInfo elementOut : elementsOut) {
+      if (elementOut.element.isGadget()) {
+        gadget = (Gadget) elementOut.element;
+      }
+    }
+    assertEquals(gadgetUrl, gadget.getUrl());
+    assertEquals(ALEX.getAddress(), gadget.getAuthor());
+    assertEquals(updatedPropertyValue, gadget.getProperty(propertyName));
+    assertNotNull(gadget.getProperty(newPropertyName));
+    assertEquals(newPropertyValue, gadget.getProperty(newPropertyName));
+    assertNull(gadget.getProperty(propertyNameToDelete));
   }
 
   public void testDelete() throws Exception {

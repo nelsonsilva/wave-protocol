@@ -37,20 +37,20 @@
   border: 1px solid transparent;
 }
 
-@url loadingGadgetLargeUrl loadingGadgetLarge;
-.loadingGadgetLargeThrobber {
+@sprite .loadingGadgetLargeThrobber {
+  gwt-image: 'loadingGadgetLarge';
   background-color: #e6ebf2;
-  background-image: loadingGadgetLargeUrl;
   background-repeat: no-repeat;
+  line-height: value('loadingGadgetLarge.getHeight', 'px');
   background-position: center center;
   display: block;
 }
 
-@url loadingGadgetSmallUrl loadingGadgetSmall;
-.loadingGadgetSmallThrobber {
+@sprite .loadingGadgetSmallThrobber {
+  gwt-image: 'loadingGadgetSmall';
   background-color: #e6ebf2;
-  background-image: loadingGadgetSmallUrl;
   background-repeat: no-repeat;
+  line-height: value('loadingGadgetSmall.getHeight', 'px');
   background-position: center center;
   display: block;
 }

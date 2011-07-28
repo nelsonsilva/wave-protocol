@@ -164,4 +164,14 @@ public final class RobotAccountDataImpl implements RobotAccountData {
     }
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "RobotAccountDataImp" +
+        "[id=" + id +
+	",url=" + url +
+	",consumerSecret=" + consumerSecret +
+	",capabilities=" + capabilities +
+	",isVerified=" + isVerified + "]";
+  }
 }

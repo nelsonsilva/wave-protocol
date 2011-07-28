@@ -40,16 +40,18 @@
     <mkdir dir="proto_src" />
   </target>
 
-  <target name="all" depends="compile, compile_json" description="Compiles Java
+  <target name="all" depends="compile" description="Compiles Java
       and Javascript classes from protocol buffers" />
 
   <target name="compile" depends="init" description="Compiles Java files from protocol buffers">
     <protoc proto="${src.dir}/org/waveprotocol/box/common/comms/waveclient-rpc.proto" />
+    <protoc proto="${src.dir}/org/waveprotocol/box/profile/profiles.proto"/>
     <protoc proto="${src.dir}/org/waveprotocol/box/search/search.proto"/>
     <protoc proto="${src.dir}/org/waveprotocol/box/server/persistence/protos/account-store.proto" />
     <protoc proto="${src.dir}/org/waveprotocol/box/server/persistence/protos/delta-store.proto" />
     <protoc proto="${src.dir}/org/waveprotocol/box/server/rpc/rpc.proto" />
     <protoc proto="${src.dir}/org/waveprotocol/wave/concurrencycontrol/clientserver.proto" />
+    <protoc proto="${src.dir}/org/waveprotocol/wave/diff/diff.proto" />
     <protoc proto="${src.dir}/org/waveprotocol/wave/federation/federation.protodevel"/>
     <protoc proto="${src.dir}/org/waveprotocol/wave/federation/federation_error.protodevel" />
     <protoc proto="${src.dir}/org/waveprotocol/protobuf/extensions.proto" />

@@ -64,6 +64,6 @@ public final class GadgetXmlUtil {
   public static XmlStringBuilder constructXml(String url, String prefs, String[] categories,
       String loginName) {
     return org.waveprotocol.wave.model.gadget.GadgetXmlUtil.constructXml(url, prefs,
-        loginName, categories);
+        loginName, categories, null);
   }
 }

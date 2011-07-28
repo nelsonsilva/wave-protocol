@@ -185,6 +185,7 @@
     <mkdir dir="${gen.dir}/messages"/>
     <pstmessage proto="${build.proto.dir}/org/waveprotocol/box/common/comms/WaveClientRpc.class"/>
     <pstmessage proto="${build.proto.dir}/org/waveprotocol/box/search/SearchProto.class"/>
+    <pstmessage proto="${build.proto.dir}/org/waveprotocol/box/profile/ProfilesProto.class"/>
     <pstmessage proto="${build.proto.dir}/org/waveprotocol/box/server/rpc/Rpc.class"/>
     <pstmessage proto="${build.proto.dir}/org/waveprotocol/wave/federation/Proto.class"/>
     <pstmessage proto="${build.proto.dir}/org/waveprotocol/wave/concurrencycontrol/ClientServer.class"/>
@@ -614,9 +615,28 @@
         <include name="org/waveprotocol/**/*" />
         <include name="org/xmlpull/**/*" />
         <include name="org/xmpp/**/*" />
-        <exclude name= "org/waveprotocol/wave/client/**/*"/>
-        <exclude name= "org/waveprotocol/box/webclient/**/*"/>
-        <exclude name= "org/waveprotocol/box/consoleclient/**/*"/>
+        <exclude name="org/waveprotocol/box/webclient/**/*"/>
+        <exclude name="org/waveprotocol/box/consoleclient/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/*"/>
+        <exclude name="org/waveprotocol/wave/client/account/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/autohide/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/clipboard/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/common/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/concurrencycontrol/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/debug/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/doodad/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/paging/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/render/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/scheduler/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/scroll/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/state/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/testing/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/uibuilder/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/uibuilder/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/util/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/wave/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/wavepanel/**/*"/>
+        <exclude name="org/waveprotocol/wave/client/widget/**/*"/>
       </fileset>
       <manifest>
         <!-- Application entry point -->

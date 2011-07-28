@@ -18,6 +18,7 @@
 package org.waveprotocol.box.server.robots.operations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.google.wave.api.Element;
 import com.google.wave.api.Gadget;
 import com.google.wave.api.InvalidRequestException;
@@ -33,14 +34,19 @@ import com.google.wave.api.impl.DocumentModifyQuery;
 
 import org.waveprotocol.box.server.robots.OperationContext;
 import org.waveprotocol.box.server.robots.util.OperationUtil;
-import org.waveprotocol.wave.client.gadget.GadgetXmlUtil;
+import org.waveprotocol.wave.client.gadget.renderer.GadgetElementChild;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
+import org.waveprotocol.wave.model.document.Doc;
 import org.waveprotocol.wave.model.document.Document;
 import org.waveprotocol.wave.model.document.RangedAnnotation;
 import org.waveprotocol.wave.model.document.util.LineContainers;
+import org.waveprotocol.wave.model.document.util.Point;
 import org.waveprotocol.wave.model.document.util.XmlStringBuilder;
+import org.waveprotocol.wave.model.gadget.GadgetXmlUtil;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.opbased.OpBasedWavelet;
+
+import java.util.Map;
 
 /**
  * Implements the "document.modify" operations.
@@ -93,7 +99,8 @@ public class DocumentModifyService implements OperationService {
         replace(operation, doc, view, hitIterator, modifyAction);
         break;
       case UPDATE_ELEMENT:
-        // TODO(ljvderijk): Implement update of gadgets and other elements
+        updateElement(operation, doc, view, hitIterator, modifyAction);
+        break;
       default:
         throw new UnsupportedOperationException(
             "Unsupported ModifyHow " + modifyAction.getModifyHow());
@@ -405,7 +412,10 @@ public class DocumentModifyService implements OperationService {
         if (element.isGadget()) {
           Gadget gadget = (Gadget) element;
           XmlStringBuilder xml =
-              GadgetXmlUtil.constructXml(gadget.getUrl(), "", gadget.getAuthor());
+              GadgetXmlUtil.constructXml(gadget.getUrl(), "", gadget.getAuthor(), null,
+                  gadget.getProperties());
+          // TODO (Yuri Z.) Make it possible to specify a location to insert the
+          // gadget and implement insertion at the specified location.
           LineContainers.appendLine(doc, xml);
         } else {
           // TODO(ljvderijk): Inserting other elements.
@@ -415,6 +425,112 @@ public class DocumentModifyService implements OperationService {
       }
       // should return 1 since elements have a length of 1 in the ApiView;
       return 1;
+    }
+  }
+  
+  /**
+   * Updates elements in the document.
+   * <b>Note</b>: Only gadget elements are supported, for now.
+   * 
+   * @param operation the operation the operation that wants to update elements.
+   * @param doc the document to update elements in.
+   * @param view the {@link ApiView} of that document.
+   * @param hitIterator the iterator over the places where to update elements.
+   * @param modifyAction the action that specifies what to update.
+   * @throws InvalidRequestException if something goes wrong.
+   */
+  private void updateElement(OperationRequest operation, Document doc, ApiView view,
+      DocumentHitIterator hitIterator, DocumentModifyAction modifyAction)
+      throws InvalidRequestException {
+    Range range = null;
+    for (int index = 0; ((range = hitIterator.next()) != null); ++index) {
+      Element element = modifyAction.getElement(index);
+      if (element != null) {
+        if (element.isGadget()) {
+          int xmlStart = view.transformToXmlOffset(range.getStart());
+          Doc.E docElem = Point.elementAfter(doc, doc.locate(xmlStart));
+          updateExistingGadgetElement(doc, docElem, element);
+        } else {
+          // TODO (Yuri Z.) Updating other elements.
+          throw new UnsupportedOperationException(
+              "Can't update other elements than gadgets at the moment");
+        }
+      }
+    }
+  }
+
+  /**
+   * Updates the existing gadget element properties.
+   * 
+   * @param doc the document to update elements in.
+   * @param existingElement the gadget element to update.
+   * @param element the element that describes what existingElement should be
+   *        updated with.
+   * @throws InvalidRequestException
+   */
+  private void updateExistingGadgetElement(Document doc, Doc.E existingElement,
+      Element element) throws InvalidRequestException {
+    Preconditions.checkArgument(element.isGadget(),
+        "Called with non-gadget element type %s", element.getType());
+
+    String url = element.getProperty("url");
+    if (url != null) {
+      doc.setElementAttribute(existingElement, "url", url);
+    }
+    Map<String, Doc.E> children = Maps.newHashMap();
+    for (Doc.N child = doc.getFirstChild(existingElement); child != null; child =
+        doc.getNextSibling(child)) {
+      Doc.E childAsElement = doc.asElement(child);
+      if (childAsElement != null) {
+        String key = doc.getTagName(childAsElement);
+        if (key.equals("state")) {
+          key = key + " " + doc.getAttributes(childAsElement).get("name");
+        }
+        children.put(key, childAsElement);
+      }
+    }
+
+    for (Map.Entry<String, String> property : element.getProperties().entrySet()) {
+      // TODO (Yuri Z.) Support updating gadget metadata (author, title, thumbnail...)
+      // and user preferences.
+      String key = null;
+      String tag = null;
+      if (property.getKey().equals("title") || property.getKey().equals("thumbnail")
+          || property.getKey().equals("author")) {
+        key = property.getKey();
+        tag = property.getKey();
+      } else if (!property.getKey().equals("name") && !property.getKey().equals("pref")
+          && !property.getKey().equals("url")) {
+        // A state variable.
+        key = "state " + property.getKey();
+        tag = "state";
+      } else {
+        continue;
+      }
+
+      String val = property.getValue();
+      Doc.E child = children.get(key);
+      if (val == null) {
+        // Delete the property if value is null.
+        if (child == null) {
+          // Property does not exist, skipping.
+          continue;
+        }
+        doc.deleteNode(child);
+      } else {
+        if (child != null) {
+          if (tag.equals("state")) {
+            doc.setElementAttribute(child, "value", val);
+          } else {
+            doc.emptyElement(child);
+            Point<Doc.N> point = Point.<Doc.N> inElement(child, null);
+            doc.insertText(point, val);
+          }
+        } else {
+          XmlStringBuilder xml = GadgetElementChild.constructStateXml(property.getKey(), val);
+          doc.insertXml(Point.<Doc.N> inElement(existingElement, null), xml);
+        }
+      }
     }
   }
 

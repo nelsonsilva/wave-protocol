@@ -380,7 +380,8 @@ public final class MongoDbStore implements SignerInfoStore, AttachmentStore, Acc
       return null;
     }
     
-    Map<String, Object> capabilitiesObj = (Map<String, Object>) object.get(CAPABILITIES_CAPABILITIES_FIELD);
+    Map<String, Object> capabilitiesObj =
+	(Map<String, Object>) object.get(CAPABILITIES_CAPABILITIES_FIELD);
     Map<EventType, Capability> capabilities = CollectionUtils.newHashMap();
     
     for (Entry<String, Object> capability : capabilitiesObj.entrySet()) {
@@ -391,8 +392,9 @@ public final class MongoDbStore implements SignerInfoStore, AttachmentStore, Acc
       for (String contextId : contextsObj.keySet()) {
         contexts.add(Context.valueOf((String) contextsObj.get(contextId)));
       }
+      String filter = (String) capabilityObj.get(CAPABILITY_FILTER_FIELD);
       
-      capabilities.put(eventType, new Capability(eventType, contexts));
+      capabilities.put(eventType, new Capability(eventType, contexts, filter));
     }
     
     String capabilitiesHash = (String) object.get(CAPABILITIES_HASH_FIELD);

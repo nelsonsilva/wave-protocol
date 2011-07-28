@@ -103,4 +103,24 @@ public class RobotCapabilities {
     } else if (!version.equals(other.version)) return false;
     return true;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder result =
+        new StringBuilder("RobotCapabilities[version=" + version + ",hash=" + capabilitiesHash);
+    for (Map.Entry<EventType, Capability> entry : capabilities.entrySet()) {
+      result
+	  .append(",")
+	  .append(entry.getKey())
+	  .append(":(")
+	  .append(entry.getValue().getEventType())
+	  .append(",#")
+	  .append(entry.getValue().getContexts().size())
+	  .append(",")
+	  .append(entry.getValue().getFilter())
+	  .append(")");
+    }
+    result.append("]");
+    return result.toString();
+  }
 }

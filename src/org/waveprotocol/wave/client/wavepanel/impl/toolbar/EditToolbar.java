@@ -29,7 +29,9 @@ import org.waveprotocol.wave.client.doodad.link.Link.InvalidLinkException;
 import org.waveprotocol.wave.client.editor.Editor;
 import org.waveprotocol.wave.client.editor.EditorContext;
 import org.waveprotocol.wave.client.editor.EditorContextAdapter;
+import org.waveprotocol.wave.client.editor.content.CMutableDocument;
 import org.waveprotocol.wave.client.editor.content.ContentElement;
+import org.waveprotocol.wave.client.editor.content.ContentNode;
 import org.waveprotocol.wave.client.editor.content.misc.StyleAnnotationHandler;
 import org.waveprotocol.wave.client.editor.content.paragraph.Paragraph;
 import org.waveprotocol.wave.client.editor.content.paragraph.Paragraph.LineStyle;
@@ -47,6 +49,7 @@ import org.waveprotocol.wave.client.widget.toolbar.buttons.ToolbarClickButton;
 import org.waveprotocol.wave.client.widget.toolbar.buttons.ToolbarToggleButton;
 import org.waveprotocol.wave.model.document.util.FocusedRange;
 import org.waveprotocol.wave.model.document.util.LineContainers;
+import org.waveprotocol.wave.model.document.util.Point;
 import org.waveprotocol.wave.model.document.util.XmlStringBuilder;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 
@@ -286,10 +289,21 @@ public class EditToolbar {
         .setIcon(css.insertGadget())
         .applyTo(toolbar.addClickButton(), new ToolbarClickButton.Listener() {
           @Override public void onClicked() {
+            int from = -1;
+            FocusedRange focusedRange = editor.getSelectionHelper().getSelectionRange();
+            if (focusedRange != null) {
+              from = focusedRange.getFocus();
+            }
             String url = Window.prompt("Gadget URL", YES_NO_MAYBE_GADGET);
             if (url != null && !url.isEmpty()) {
               XmlStringBuilder xml = GadgetXmlUtil.constructXml(url, "", user.getAddress());
-              LineContainers.appendLine(editor.getDocument(), xml);
+              if (from != -1) {
+                CMutableDocument doc = editor.getDocument();
+                Point<ContentNode> point = doc.locate(from);
+                doc.insertXml(point, xml);
+              } else {
+                LineContainers.appendLine(editor.getDocument(), xml);
+              }
             }
           }
         });

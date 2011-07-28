@@ -21,11 +21,9 @@ import com.mongodb.DB;
 
 import org.waveprotocol.box.server.persistence.AccountStore;
 import org.waveprotocol.box.server.persistence.AccountStoreTestBase;
-import org.waveprotocol.box.server.persistence.AttachmentStoreTestBase;
-import org.waveprotocol.box.server.persistence.memory.MemoryStore;
 
 /**
- * Testcases for the {@link MemoryStore} implementation of the
+ * Testcases for the {@link MongoDbStore} implementation of the
  * {@link AccountStore}.
  *
  * @author ljvderijk@google.com (Lennard de Rijk)
@@ -37,7 +35,7 @@ public class AccountStoreTest extends AccountStoreTestBase {
   private final DB database;
 
   /**
-   * Initializes the MongoDB version of a {@link AttachmentStoreTestBase}.
+   * Initializes the MongoDB version of a {@link AccountStoreTestBase}.
    */
   public AccountStoreTest() throws Exception {
     MongoDbProvider mongoDbProvider = new MongoDbProvider();

@@ -627,4 +627,9 @@ public class OperationQueue implements Serializable {
         Parameter.of(ParamsProperty.PROTOCOL_VERSION, protocolVersion.getVersionString()),
         Parameter.of(ParamsProperty.CAPABILITIES_HASH, capabilitiesHash));
   }
+
+  public void fetchProfiles(FetchProfilesRequest request) {
+    appendOperation(OperationType.ROBOT_FETCH_PROFILES,
+        Parameter.of(ParamsProperty.FETCH_PROFILES_REQUEST, request));
+  }
 }

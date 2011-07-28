@@ -19,14 +19,19 @@ package org.waveprotocol.wave.model.gadget;
 
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.AUTHOR_ATTRIBUTE;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.CATEGORY_TAGNAME;
-import static org.waveprotocol.wave.model.gadget.GadgetConstants.TAGNAME;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.KEY_ATTRIBUTE;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.PREFS_ATTRIBUTE;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.STATE_ATTRIBUTE;
+import static org.waveprotocol.wave.model.gadget.GadgetConstants.TAGNAME;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.TITLE_ATTRIBUTE;
 import static org.waveprotocol.wave.model.gadget.GadgetConstants.URL_ATTRIBUTE;
 
+import org.waveprotocol.wave.client.gadget.renderer.GadgetElementChild;
 import org.waveprotocol.wave.model.document.util.XmlStringBuilder;
+
+import java.util.Map;
+
+import javax.annotation.Nullable;
 
 /**
  * Static methods to produce Wave Gadget XML elements.
@@ -54,7 +59,7 @@ public final class GadgetXmlUtil {
    * @return content XML string for the gadget.
    */
   public static XmlStringBuilder constructXml(String url, String prefs, String author) {
-    return constructXml(url, prefs, author, null);
+    return constructXml(url, prefs, author, null, null);
   }
 
   /**
@@ -64,16 +69,23 @@ public final class GadgetXmlUtil {
    * @param prefs initial gadget preferences as escaped JSON string.
    * @param categories array of category names for the gadget (e.g. ["game",
    *        "chess"]).
+   * @param state the initial gadget state.
    * @return content XML string for the gadget.
    */
   public static XmlStringBuilder constructXml(String url, String prefs, String author,
-      String[] categories) {
-    XmlStringBuilder builder = XmlStringBuilder.createEmpty();
+      @Nullable String[] categories, @Nullable Map<String, String> state) {
+    final XmlStringBuilder builder = XmlStringBuilder.createEmpty();
     if (categories != null) {
       for (int i = 0; i < categories.length; ++i) {
         builder.append(
             XmlStringBuilder.createText("").wrap(
                 CATEGORY_TAGNAME, KEY_ATTRIBUTE, categories[i]));
+      }
+    }
+    if (state != null) {
+      for (Map.Entry<String, String> entry : state.entrySet()) {
+        builder.append(
+            GadgetElementChild.constructStateXml(entry.getKey(), entry.getValue()));
       }
     }
     builder.wrap(

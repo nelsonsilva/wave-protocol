@@ -28,6 +28,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.TextBox;
 
+import org.waveprotocol.wave.client.common.util.WaveRefConstants;
 import org.waveprotocol.wave.client.wavepanel.view.BlipLinkPopupView;
 import org.waveprotocol.wave.client.widget.popup.AlignedPopupPositioner;
 import org.waveprotocol.wave.client.widget.popup.PopupChrome;
@@ -80,6 +81,8 @@ public final class BlipLinkPopupWidget extends Composite
 
   @UiField
   TextBox linkInfoBox;
+  @UiField
+  TextBox waverefLink;
 
   /** Popup containing this widget. */
   private final UniversalPopup popup;
@@ -116,6 +119,10 @@ public final class BlipLinkPopupWidget extends Composite
   @Override
   public void setLinkInfo(String url) {
     linkInfoBox.setText(url);
+    String path =
+        GWT.getHostPageBaseURL() + "waveref/"
+            + url.substring(WaveRefConstants.WAVE_URI_PREFIX.length());
+    waverefLink.setText(path);
   }
 
   @Override

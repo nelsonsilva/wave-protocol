@@ -84,10 +84,10 @@ public class GadgetWidgetUi extends Composite implements Hoverable {
     DataResource brokenGadget();
 
     @Source("loading_gadget.gif")
-    DataResource loadingGadgetLarge();
+    ImageResource loadingGadgetLarge();
 
     @Source("loading_gadget_small.gif")
-    DataResource loadingGadgetSmall();
+    ImageResource loadingGadgetSmall();
 
     @Source("meta_more.png")
     ImageResource moreImage();
@@ -180,8 +180,6 @@ public class GadgetWidgetUi extends Composite implements Hoverable {
 
   private static final Binder BINDER = GWT.create(Binder.class);
 
-  private static final int DEFAULT_GADGET_FRAME_HEIGHT = 20;
-
   /**
    * The maximum height of the gadget frame that should use the small throbber
    * icon.
@@ -245,16 +243,26 @@ public class GadgetWidgetUi extends Composite implements Hoverable {
 
   private void buildIFrame(String gadgetName) {
     gadgetIframe.getElement().setId(gadgetName);
-    gadgetIframe.addStyleName(CSS.loadingGadgetSmallThrobber());
-    throbberState = ThrobberState.SMALL;
+    
+    int height = 0;
+    switch (throbberState) {
+      case SMALL:
+        gadgetIframe.addStyleName(CSS.loadingGadgetSmallThrobber());
+        height = Resources.RESOURCES.loadingGadgetSmall().getHeight();
+        break;
+      case LARGE:
+        gadgetIframe.addStyleName(CSS.loadingGadgetLargeThrobber());
+        height = Resources.RESOURCES.loadingGadgetLarge().getHeight();
+        break;
+    }
+    
     IFrameElement iframe = getIframeElement();
     iframe.setAttribute("vspace", "0");
     iframe.setAttribute("hspace", "0");
     iframe.setAttribute("frameBorder", "no");
     iframe.setAttribute("moduleId", gadgetName);
     iframe.setAttribute("display", "block");
-    iframe.setAttribute("width", "100%");
-    iframe.setAttribute("height", DEFAULT_GADGET_FRAME_HEIGHT + "px");
+    iframe.setAttribute("height", height + "px");
     // TODO(user): scrolling policy/settings for the wave gadgets.
     iframe.setScrolling("no");
     iframeDiv.add(gadgetIframe);

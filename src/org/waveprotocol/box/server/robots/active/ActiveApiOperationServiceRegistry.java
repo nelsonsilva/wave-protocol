@@ -24,6 +24,7 @@ import org.waveprotocol.box.server.robots.AbstractOperationServiceRegistry;
 import org.waveprotocol.box.server.robots.operations.BlipOperationServices;
 import org.waveprotocol.box.server.robots.operations.CreateWaveletService;
 import org.waveprotocol.box.server.robots.operations.DocumentModifyService;
+import org.waveprotocol.box.server.robots.operations.FetchProfilesService;
 import org.waveprotocol.box.server.robots.operations.FetchWaveService;
 import org.waveprotocol.box.server.robots.operations.FolderActionService;
 import org.waveprotocol.box.server.robots.operations.NotifyOperationService;
@@ -64,5 +65,6 @@ public final class ActiveApiOperationServiceRegistry extends AbstractOperationSe
     register(OperationType.DOCUMENT_MODIFY, DocumentModifyService.create());
     register(OperationType.WAVELET_SET_TITLE, WaveletSetTitleService.create());
     register(OperationType.ROBOT_FOLDER_ACTION, FolderActionService.create());
+    register(OperationType.ROBOT_FETCH_PROFILES, FetchProfilesService.create());
   }
 }
