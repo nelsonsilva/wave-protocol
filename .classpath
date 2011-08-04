@@ -13,7 +13,7 @@
 	<classpathentry kind="lib" path="third_party/codegen/velocity/velocity-1.6.3.jar"/>
 	<classpathentry kind="lib" path="third_party/runtime/aopalliance/aopalliance.jar"/>
 	<classpathentry kind="lib" path="third_party/runtime/bouncycastle/bcprov-jdk16-145.jar"/>
-	<classpathentry kind="lib" path="third_party/runtime/commons_cli/commons-cli-1.2.jar" sourcepath="/home/nfgs/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2-sources.jar"/>
+	<classpathentry kind="lib" path="third_party/runtime/commons_cli/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="third_party/runtime/commons_codec/commons-codec-1.4.jar" sourcepath="third_party/runtime/commons_codec/commons-codec-1.4-sources.jar"/>
 	<classpathentry kind="lib" path="third_party/runtime/commons_collections/commons-collections-3.2.1.jar"/>
 	<classpathentry kind="lib" path="third_party/runtime/commons_configuration/commons-configuration-1.6.jar"/>
