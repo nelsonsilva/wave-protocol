@@ -48,7 +48,7 @@ import org.waveprotocol.box.webclient.search.SearchPanelWidget;
 import org.waveprotocol.box.webclient.search.SearchPresenter;
 import org.waveprotocol.box.webclient.search.SimpleSearch;
 import org.waveprotocol.box.webclient.search.WaveStore;
-import org.waveprotocol.box.webclient.util.Log;
+import org.waveprotocol.box.webclient.client.events.Log;
 import org.waveprotocol.box.webclient.widget.error.ErrorIndicatorPresenter;
 import org.waveprotocol.box.webclient.widget.frame.FramedPanel;
 import org.waveprotocol.box.webclient.widget.loading.LoadingIndicator;

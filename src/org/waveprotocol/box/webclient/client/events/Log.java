@@ -15,10 +15,9 @@
  *
  */
 
-package org.waveprotocol.box.webclient.util;
+package org.waveprotocol.box.webclient.client.events;
 
 import org.waveprotocol.box.webclient.client.ClientEvents;
-import org.waveprotocol.box.webclient.client.events.DebugMessageEvent;
 import org.waveprotocol.box.webclient.client.events.DebugMessageEvent.Severity;
 
 /**

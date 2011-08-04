@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.waveprotocol.box.webclient.util;
+package org.waveprotocol.box.webclient.search;
 
 import junit.framework.TestCase;
 

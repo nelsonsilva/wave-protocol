@@ -36,7 +36,7 @@ import org.waveprotocol.box.common.comms.jso.ProtocolSubmitResponseJsoImpl;
 import org.waveprotocol.box.common.comms.jso.ProtocolWaveletUpdateJsoImpl;
 import org.waveprotocol.box.webclient.client.events.NetworkStatusEvent;
 import org.waveprotocol.box.webclient.client.events.NetworkStatusEvent.ConnectionStatus;
-import org.waveprotocol.box.webclient.util.Log;
+import org.waveprotocol.box.webclient.client.events.Log;
 import org.waveprotocol.wave.communication.gwt.JsonMessage;
 import org.waveprotocol.wave.communication.json.JsonException;
 import org.waveprotocol.wave.model.util.CollectionUtils;
