@@ -57,7 +57,7 @@ import org.waveprotocol.wave.model.wave.ParticipantId;
  * Attaches actions that can be performed in a Wave's "edit mode" to a toolbar.
  * <p>
  * Also constructs an initial set of such actions.
- * 
+ *
  * @author kalman@google.com (Benjamin Kalman)
  */
 public class EditToolbar {
@@ -329,7 +329,7 @@ public class EditToolbar {
                 }
                 try {
                   String linkAnnotationValue = Link.normalizeLink(rawLinkValue);
-                  EditorAnnotationUtil.setAnnotationOverSelection(editor, Link.MANUAL_KEY,
+                  EditorAnnotationUtil.setAnnotationOverSelection(editor, Link.KEY,
                       linkAnnotationValue);
                 } catch (InvalidLinkException e) {
                   Window.alert(e.getLocalizedMessage());
@@ -447,7 +447,7 @@ public class EditToolbar {
 
   /**
    * Starts listening to editor changes.
-   * 
+   *
    * @throws IllegalStateException if this toolbar is already enabled
    * @throws IllegalArgumentException if the editor is <code>null</code>
    */
@@ -461,7 +461,7 @@ public class EditToolbar {
 
   /**
    * Stops listening to editor changes.
-   * 
+   *
    * @throws IllegalStateException if this toolbar is not currently enabled
    * @throws IllegalArgumentException if this toolbar is currently enabled for a
    *         different editor

@@ -18,6 +18,7 @@
 package org.waveprotocol.wave.client.common.scrub;
 
 import com.google.gwt.http.client.URL;
+
 import org.waveprotocol.wave.client.common.safehtml.EscapeUtils;
 
 /**
@@ -28,7 +29,6 @@ import org.waveprotocol.wave.client.common.safehtml.EscapeUtils;
 public class Scrub {
 
   /** If true, then we scrub URLs */
-  // TODO (Yuri Z.) implement scrubbing mechanism for wiab and then set to true
   private static boolean enableScrubbing = false;
 
   public static void setEnableScrubbing(final boolean enableScrubbing) {

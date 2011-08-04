@@ -59,15 +59,26 @@ public final class Link {
 
   /** Key prefix */
   public static final String PREFIX = "link";
+
+  /** The primary key used for links. This is the same as the prefix on its own. */
+  public static final String KEY = PREFIX;
+
   /** Key for 'linky' agent created links. */
   public static final String AUTO_KEY = PREFIX + "/auto";
-  /** Key for manually created links. */
+
+  /**
+   * Key for manually created links.
+   * @deprecated use the "link" key. Delete this after old links have been cleaned up.
+   */
+  @Deprecated
   public static final String MANUAL_KEY = PREFIX + "/manual";
   /**
    * Key for wave links.
    *
-   * @deprecated Use link/manual with value of the form:
+   * @deprecated Use the key "link" with value of the form:
    *             wave://example.com/w+1234/~/conv+root/b+abcd
+   *
+   *             Delete this after old links have been cleaned up.
    */
   @Deprecated
   public static final String WAVE_KEY = PREFIX + "/wave";
@@ -78,7 +89,7 @@ public final class Link {
    * should expose LINK_KEYS as a set, and have ORDERED_LINK_KEYS for code that
    * relies on specific ordering.
    */
-  public static final String[] LINK_KEYS = {AUTO_KEY, MANUAL_KEY, WAVE_KEY};
+  public static final String[] LINK_KEYS = {KEY, AUTO_KEY, MANUAL_KEY, WAVE_KEY};
 
   private Link() {
   }

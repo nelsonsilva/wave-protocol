@@ -55,6 +55,7 @@ import org.waveprotocol.wave.model.conversation.ConversationBlip;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
 import org.waveprotocol.wave.model.document.util.Point;
 import org.waveprotocol.wave.model.document.util.XmlStringBuilder;
+import org.waveprotocol.wave.model.gadget.GadgetXmlUtil;
 import org.waveprotocol.wave.model.id.ModernIdSerialiser;
 import org.waveprotocol.wave.model.id.WaveletName;
 import org.waveprotocol.wave.model.supplement.ObservableSupplementedWave;
@@ -721,7 +722,7 @@ public class GadgetWidget extends ObservableSupplementedWave.ListenerImpl
     if (titleElement == null) {
       onModifyingDocument();
       GadgetElementChild.create(element.getMutableDoc().insertXml(
-          Point.end((ContentNode) element), GadgetElementChild.constructTitleXml(newTitle)));
+          Point.end((ContentNode) element), GadgetXmlUtil.constructTitleXml(newTitle)));
       blipSubmitter.submit();
     } else {
       if (!title.equals(titleElement.getValue())) {
@@ -1380,7 +1381,7 @@ public class GadgetWidget extends ObservableSupplementedWave.ListenerImpl
       log("New preference '", key, "'='", value, "'");
       onModifyingDocument();
       element.getMutableDoc().insertXml(
-          Point.end((ContentNode)element), GadgetElementChild.constructPrefXml(key, value));
+          Point.end((ContentNode)element), GadgetXmlUtil.constructPrefXml(key, value));
       blipSubmitter.submit();
     }
 
@@ -1564,7 +1565,7 @@ public class GadgetWidget extends ObservableSupplementedWave.ListenerImpl
       }  else {
         onModifyingDocument();
         element.getMutableDoc().insertXml(
-            Point.end((ContentNode)element), GadgetElementChild.constructStateXml(key, value));
+            Point.end((ContentNode)element), GadgetXmlUtil.constructStateXml(key, value));
       }
     }
   }

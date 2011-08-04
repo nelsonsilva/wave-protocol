@@ -34,7 +34,6 @@ import com.google.wave.api.impl.DocumentModifyQuery;
 
 import org.waveprotocol.box.server.robots.OperationContext;
 import org.waveprotocol.box.server.robots.util.OperationUtil;
-import org.waveprotocol.wave.client.gadget.renderer.GadgetElementChild;
 import org.waveprotocol.wave.model.conversation.ObservableConversation;
 import org.waveprotocol.wave.model.document.Doc;
 import org.waveprotocol.wave.model.document.Document;
@@ -427,11 +426,11 @@ public class DocumentModifyService implements OperationService {
       return 1;
     }
   }
-  
+
   /**
    * Updates elements in the document.
    * <b>Note</b>: Only gadget elements are supported, for now.
-   * 
+   *
    * @param operation the operation the operation that wants to update elements.
    * @param doc the document to update elements in.
    * @param view the {@link ApiView} of that document.
@@ -461,7 +460,7 @@ public class DocumentModifyService implements OperationService {
 
   /**
    * Updates the existing gadget element properties.
-   * 
+   *
    * @param doc the document to update elements in.
    * @param existingElement the gadget element to update.
    * @param element the element that describes what existingElement should be
@@ -527,7 +526,7 @@ public class DocumentModifyService implements OperationService {
             doc.insertText(point, val);
           }
         } else {
-          XmlStringBuilder xml = GadgetElementChild.constructStateXml(property.getKey(), val);
+          XmlStringBuilder xml = GadgetXmlUtil.constructStateXml(property.getKey(), val);
           doc.insertXml(Point.<Doc.N> inElement(existingElement, null), xml);
         }
       }

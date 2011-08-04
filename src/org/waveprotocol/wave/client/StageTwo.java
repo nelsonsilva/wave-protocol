@@ -626,16 +626,20 @@ public interface StageTwo {
           DiffDeleteRenderer.register(r.getElementHandlerRegistry());
           StyleAnnotationHandler.register(r);
           TitleAnnotationHandler.register(r);
-          LinkAnnotationHandler.register(r, new LinkAttributeAugmenter() {
-            @Override
-            public Map<String, String> augment(Map<String, Object> annotations, boolean isEditing,
-                Map<String, String> current) {
-              return current;
-            }
-          });
+          LinkAnnotationHandler.register(r, createLinkAttributeAugmenter());
           SelectionAnnotationHandler.register(r, getSessionId(), getProfileManager());
         }
       });
+    }
+
+    protected LinkAttributeAugmenter createLinkAttributeAugmenter() {
+      return new LinkAttributeAugmenter() {
+        @Override
+        public Map<String, String> augment(Map<String, Object> annotations, boolean isEditing,
+            Map<String, String> current) {
+          return current;
+        }
+      };
     }
 
     protected ModelAsViewProvider createModelAsViewProvider() {
