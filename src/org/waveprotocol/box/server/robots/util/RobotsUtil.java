@@ -17,14 +17,14 @@
 
 package org.waveprotocol.box.server.robots.util;
 
-import org.waveprotocol.box.server.account.RobotAccountData;
-import org.waveprotocol.box.server.account.RobotAccountDataImpl;
-import org.waveprotocol.box.server.persistence.AccountStore;
-import org.waveprotocol.box.server.persistence.PersistenceException;
+import com.google.wave.api.Annotation;
+import com.google.wave.api.Blip;
+import com.google.wave.api.BlipContent;
+import com.google.wave.api.Range;
+
 import org.waveprotocol.box.server.robots.RobotWaveletData;
 import org.waveprotocol.box.server.util.WaveletDataUtil;
 import org.waveprotocol.wave.model.id.IdURIEncoderDecoder;
-import org.waveprotocol.wave.model.id.TokenGenerator;
 import org.waveprotocol.wave.model.id.WaveletName;
 import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.version.HashedVersionFactory;
@@ -32,20 +32,17 @@ import org.waveprotocol.wave.model.version.HashedVersionZeroFactoryImpl;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.model.wave.data.ObservableWaveletData;
 import org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec;
-import org.waveprotocol.wave.util.logging.Log;
-
-import java.net.URI;
 
 /**
  * Provides helper methods for the operation services.
- * 
+ *
  * @author yurize@apache.org (Yuri Zelikov)
  */
 public class RobotsUtil {
-  
-@SuppressWarnings("serial")
-public static class RobotRegistrationException extends Exception {
-    
+
+  @SuppressWarnings("serial")
+  public static class RobotRegistrationException extends Exception {
+
     public RobotRegistrationException (String message) {
       super(message);
     }
@@ -55,15 +52,13 @@ public static class RobotRegistrationException extends Exception {
     }
   }
 
-  private static final Log LOG = Log.get(RobotsUtil.class);
   private static final IdURIEncoderDecoder URI_CODEC = new IdURIEncoderDecoder(new JavaUrlCodec());
   private static final HashedVersionFactory HASH_FACTORY = new HashedVersionZeroFactoryImpl(
       URI_CODEC);
-  private static final int TOKEN_LENGTH = 48;
 
   /**
    * Creates a new empty robot wavelet data.
-   * 
+   *
    * @param participant the wavelet creator.
    * @param waveletName the wavelet name.
    */
@@ -78,63 +73,20 @@ public static class RobotRegistrationException extends Exception {
   }
 
   /**
-   * Registers a robot.
-   * 
-   * @param robotName the robot name will be robotName@example.com.
-   * @param location the URI that the robot listens on, for example:
-   *        "http://example.com:80/robotName".
-   * @param accountStore the account store.
-   * @param tokenGenerator the robot consumer secret generator.
-   * @param isForced if {@code true} then the existing robot account will be
-   *        removed. if {@code false} and such robot account already exist and
-   *        exception will be thrown.
-   * @throws PersistenceException if the persistence layer reports an error.
-   * @throws IllegalArgumentException if the robot id is already registered and
-   *         <code>isForced</code> flag is {@code false} or if an invalid
-   *         location is specified.
+   * Copies the content of the source blip into the target blip.
+   *
+   * @param fromBlip the source blip.
+   * @param toBlip the target blip.
    */
-  public static RobotAccountData registerRobotUri(String location, ParticipantId robotId,
-      AccountStore accountStore, TokenGenerator tokenGenerator, boolean isForced)
-      throws RobotRegistrationException, PersistenceException {
-    if (accountStore.getAccount(robotId) != null) {
-      if (isForced) {
-        accountStore.removeAccount(robotId);
-      } else {
-        throw new RobotRegistrationException(robotId.getAddress()
-            + " is already in use, please choose another one.");
-      }
+  public static void copyBlipContents(Blip fromBlip, Blip toBlip) {
+    for (BlipContent blipContent: fromBlip.all().values()) {
+      toBlip.append(blipContent);
     }
-
-    URI uri;
-    try {
-      uri = URI.create(location);
-    } catch (IllegalArgumentException e) {
-      String errorMessage = "Invalid Location specified, please specify a location in URI format.";
-      throw new RobotRegistrationException(errorMessage + " " +  e.getLocalizedMessage(), e);
+    for (Annotation annotation : fromBlip.getAnnotations()) {
+      Range range = annotation.getRange();
+      toBlip.range(range.getStart() + 1, range.getEnd() + 1).annotate(annotation.getName(),
+          annotation.getValue());
     }
-    String scheme = uri.getScheme();
-    if (scheme == null || (!scheme.equals("http") && !scheme.equals("https"))) {
-      scheme = "http";
-    }
-    String robotLocation;
-    if (uri.getPort() != -1) {
-      robotLocation = scheme + "://" + uri.getHost() + ":" + uri.getPort() + uri.getPath();
-    } else {
-      robotLocation = scheme + "://" + uri.getHost() + uri.getPath();
-    }
-
-    if (robotLocation.endsWith("/")) {
-      robotLocation = robotLocation.substring(0, robotLocation.length() - 1);
-    }
-
-    // TODO(ljvderijk): Implement the verification.
-    RobotAccountData robotAccount =
-        new RobotAccountDataImpl(robotId, robotLocation,
-            tokenGenerator.generateToken(TOKEN_LENGTH), null, true);
-    accountStore.putAccount(robotAccount);
-    LOG.info(robotAccount.getId() + " is now registered as a RobotAccount with Url "
-        + robotAccount.getUrl());
-    return robotAccount;
   }
 
   private RobotsUtil() {

@@ -67,7 +67,7 @@ public final class TopConversationDomImpl implements DomView {
   // Structure.
   //
 
-  protected Element getThreadContainer() {
+  public Element getThreadContainer() {
     if (threadContainer == null) {
       threadContainer = Document.get().getElementById(Components.THREAD_CONTAINER.getDomId(id));
     }

@@ -76,11 +76,11 @@ use_socketio = @USE_SOCKETIO@
 # Default value: @${wave_server_domain}
 admin_user = @ADMIN_USER@
 
-# You can also register a robot that allows users to change their own passwords.
-# 1. On the same robot registration page enter the robot name: passwd-bot
-# 2. Enter the robot URL in the form: http://example.com:9898/agent/passwd/admin
-# 3. Enter the robot URL in the form: http://example.com:9898/agent/passwd/user
-# 4. Click on register.
+# The wave id of the welcome template wave. (Without domain, for example: w+Fxjs_-ZPmmA).
+# If filled in then a copy of this wave (actually only the root blip) will be 
+# automatically added to the inbox of every new user.
+# Default value: "" (empty)
+welcome_wave_id = @WELCOME_WAVE_ID@
 
 # To enable federation, edit the server.federation.config file and include it here.
 # Or run ant -f server-config.xml server-federation-config
