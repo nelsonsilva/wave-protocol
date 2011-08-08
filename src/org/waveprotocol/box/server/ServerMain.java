@@ -44,6 +44,7 @@ import org.waveprotocol.box.server.robots.RobotRegistrationServlet;
 import org.waveprotocol.box.server.robots.active.ActiveApiServlet;
 import org.waveprotocol.box.server.robots.agent.passwd.PasswordAdminRobot;
 import org.waveprotocol.box.server.robots.agent.passwd.PasswordRobot;
+import org.waveprotocol.box.server.robots.agent.welcome.WelcomeRobot;
 import org.waveprotocol.box.server.robots.dataapi.DataApiOAuthServlet;
 import org.waveprotocol.box.server.robots.dataapi.DataApiServlet;
 import org.waveprotocol.box.server.robots.passive.RobotsGateway;
@@ -111,7 +112,7 @@ public class ServerMain {
     public void init(ServletConfig config) throws ServletException {
       proxyServlet.init(config);
     }
-    
+
     @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
       proxyServlet.service(req, res);
@@ -153,7 +154,7 @@ public class ServerMain {
 
     ServerRpcProvider server = injector.getInstance(ServerRpcProvider.class);
     WaveBus waveBus = injector.getInstance(WaveBus.class);
-    
+
     String domain =
       injector.getInstance(Key.get(String.class, Names.named(CoreSettings.WAVE_SERVER_DOMAIN)));
     if (!ParticipantIdUtil.isDomainAddress(ParticipantIdUtil.makeDomainAddress(domain))) {
@@ -233,16 +234,17 @@ public class ServerMain {
     RobotsGateway robotsGateway = injector.getInstance(RobotsGateway.class);
     waveBus.subscribe(robotsGateway);
   }
-  
+
   private static void initializeRobotAgents(Injector injector, ServerRpcProvider server) {
     server.addServlet(PasswordRobot.ROBOT_URI + "/*", PasswordRobot.class);
     server.addServlet(PasswordAdminRobot.ROBOT_URI + "/*", PasswordAdminRobot.class);
+    server.addServlet(WelcomeRobot.ROBOT_URI + "/*", WelcomeRobot.class);
   }
 
   private static void initializeFrontend(Injector injector, ServerRpcProvider server,
       WaveBus waveBus) throws WaveServerException {
     HashedVersionFactory hashFactory = injector.getInstance(HashedVersionFactory.class);
-   
+
     WaveletProvider provider = injector.getInstance(WaveletProvider.class);
     ClientFrontend frontend =
         ClientFrontendImpl.create(hashFactory, provider, waveBus);

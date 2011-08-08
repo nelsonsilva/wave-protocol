@@ -28,6 +28,7 @@ import org.waveprotocol.box.server.authentication.PasswordDigest;
 import org.waveprotocol.box.server.gxp.UserRegistrationPage;
 import org.waveprotocol.box.server.persistence.AccountStore;
 import org.waveprotocol.box.server.persistence.PersistenceException;
+import org.waveprotocol.box.server.robots.agent.welcome.WelcomeRobot;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.util.logging.Log;
@@ -45,18 +46,22 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author josephg@gmail.com (Joseph Gentle)
  */
+@SuppressWarnings("serial")
 @Singleton
 public final class UserRegistrationServlet extends HttpServlet {
+
   private final AccountStore accountStore;
   private final String domain;
-  
+  private final WelcomeRobot welcomeBot;
+
   private final Log LOG = Log.get(UserRegistrationServlet.class);
 
   @Inject
   public UserRegistrationServlet(AccountStore accountStore,
-      @Named(CoreSettings.WAVE_SERVER_DOMAIN) String domain) {
+      @Named(CoreSettings.WAVE_SERVER_DOMAIN) String domain, WelcomeRobot welcomeBot) {
     this.accountStore = accountStore;
     this.domain = domain;
+    this.welcomeBot = welcomeBot;
   }
 
   @Override
@@ -64,13 +69,12 @@ public final class UserRegistrationServlet extends HttpServlet {
     writeRegistrationPage("", AuthenticationServlet.RESPONSE_STATUS_NONE, req.getLocale(), resp);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     req.setCharacterEncoding("UTF-8");
     String message =
-        tryCreateUser(req.getParameter(HttpRequestBasedCallbackHandler.ADDRESS_FIELD),
-            req.getParameter(HttpRequestBasedCallbackHandler.PASSWORD_FIELD));
+      tryCreateUser(req.getParameter(HttpRequestBasedCallbackHandler.ADDRESS_FIELD),
+          req.getParameter(HttpRequestBasedCallbackHandler.PASSWORD_FIELD));
     String responseType = AuthenticationServlet.RESPONSE_STATUS_SUCCESS;
 
     if (message != null) {
@@ -89,7 +93,6 @@ public final class UserRegistrationServlet extends HttpServlet {
    * returns a string containing an error message. On success, returns null.
    */
   private String tryCreateUser(String username, String password) {
-    String message = null;
     ParticipantId id = null;
 
     try {
@@ -132,14 +135,18 @@ public final class UserRegistrationServlet extends HttpServlet {
     }
 
     HumanAccountDataImpl account =
-        new HumanAccountDataImpl(id, new PasswordDigest(password.toCharArray()));
+      new HumanAccountDataImpl(id, new PasswordDigest(password.toCharArray()));
     try {
       accountStore.putAccount(account);
     } catch (PersistenceException e) {
       LOG.severe("Failed to create new account for " + id, e);
       return "An unexpected error occured while trying to create the account";
     }
-
+    try {
+      welcomeBot.greet(account.getId());
+    } catch (IOException e) {
+      LOG.warning("Failed to create a welcome wavelet for " + id, e);
+    }
     return null;
   }
 

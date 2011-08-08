@@ -28,6 +28,8 @@ import com.google.inject.name.Names;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.waveprotocol.box.server.authentication.SessionManager;
 import org.waveprotocol.box.server.authentication.SessionManagerImpl;
+import org.waveprotocol.box.server.robots.register.RobotRegistrar;
+import org.waveprotocol.box.server.robots.register.RobotRegistrarImpl;
 import org.waveprotocol.box.server.rpc.ProtoSerializer;
 import org.waveprotocol.box.server.rpc.ServerRpcProvider;
 import org.waveprotocol.box.server.waveserver.WaveServerImpl;
@@ -59,7 +61,7 @@ public class ServerModule extends AbstractModule {
   public ServerModule(boolean enableFederation) {
     this.enableFederation = enableFederation;
   }
-  
+
   @Override
   protected void configure() {
     // Receive updates from the outside world, and push them into our local Wave
@@ -84,6 +86,8 @@ public class ServerModule extends AbstractModule {
         .in(Singleton.class);
 
     bind(ServerRpcProvider.class).in(Singleton.class);
+
+    bind(RobotRegistrar.class).to(RobotRegistrarImpl.class);
   }
 
   @Provides
