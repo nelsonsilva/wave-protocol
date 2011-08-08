@@ -17,8 +17,6 @@
 
 package org.waveprotocol.box.server.robots;
 
-import static org.waveprotocol.box.server.robots.util.RobotsUtil.registerRobotUri;
-
 import com.google.common.base.Strings;
 import com.google.gxp.base.GxpContext;
 import com.google.inject.Inject;
@@ -29,10 +27,9 @@ import org.waveprotocol.box.server.CoreSettings;
 import org.waveprotocol.box.server.account.RobotAccountData;
 import org.waveprotocol.box.server.gxp.robots.RobotRegistrationPage;
 import org.waveprotocol.box.server.gxp.robots.RobotRegistrationSuccessPage;
-import org.waveprotocol.box.server.persistence.AccountStore;
 import org.waveprotocol.box.server.persistence.PersistenceException;
+import org.waveprotocol.box.server.robots.register.RobotRegistrar;
 import org.waveprotocol.box.server.robots.util.RobotsUtil.RobotRegistrationException;
-import org.waveprotocol.wave.model.id.TokenGenerator;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 import org.waveprotocol.wave.util.logging.Log;
@@ -51,21 +48,19 @@ import javax.servlet.http.HttpServletResponse;
 @SuppressWarnings("serial")
 @Singleton
 public class RobotRegistrationServlet extends HttpServlet {
-  
+
   private static final String CREATE_PATH = "/create";
 
   private static final Log LOG = Log.get(RobotRegistrationServlet.class);
 
-  private final AccountStore accountStore;
+  private final RobotRegistrar robotRegistrar;
   private final String domain;
-  private final TokenGenerator tokenGenerator;
 
   @Inject
-  private RobotRegistrationServlet(AccountStore accountStore,
-      @Named(CoreSettings.WAVE_SERVER_DOMAIN) String domain, TokenGenerator tokenGenerator) {
-    this.accountStore = accountStore;
+  private RobotRegistrationServlet(@Named(CoreSettings.WAVE_SERVER_DOMAIN) String domain,
+      RobotRegistrar robotRegistrar) {
+    this.robotRegistrar = robotRegistrar;
     this.domain = domain;
-    this.tokenGenerator = tokenGenerator;
   }
 
   @Override
@@ -122,7 +117,7 @@ public class RobotRegistrationServlet extends HttpServlet {
 
     RobotAccountData robotAccount = null;
     try{
-      robotAccount = registerRobotUri(location, id, accountStore, tokenGenerator, false);
+      robotAccount = robotRegistrar.registerNew(id, location);
     } catch (RobotRegistrationException e) {
       doRegisterGet(req, resp, e.getLocalizedMessage());
     } catch (PersistenceException e) {

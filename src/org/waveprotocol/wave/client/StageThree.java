@@ -31,6 +31,7 @@ import org.waveprotocol.wave.client.wavepanel.impl.edit.ActionsImpl;
 import org.waveprotocol.wave.client.wavepanel.impl.edit.EditController;
 import org.waveprotocol.wave.client.wavepanel.impl.edit.EditSession;
 import org.waveprotocol.wave.client.wavepanel.impl.edit.ParticipantController;
+import org.waveprotocol.wave.client.wavepanel.impl.edit.KeepFocusInView;
 import org.waveprotocol.wave.client.wavepanel.impl.focus.FocusFramePresenter;
 import org.waveprotocol.wave.client.wavepanel.impl.indicator.ReplyIndicatorController;
 import org.waveprotocol.wave.client.wavepanel.impl.menu.MenuController;
@@ -167,6 +168,14 @@ public interface StageThree {
       return null;
     }
 
+    /**
+     * Installs parts of stage three that have dependencies.
+     * <p>
+     * This method is only called once all asynchronously loaded components of
+     * stage three are ready.
+     * <p>
+     * Subclasses may override this to change the set of installed features.
+     */
     protected void install() {
       EditorStaticDeps.setPopupProvider(PopupFactory.getProvider());
       EditorStaticDeps.setPopupChromeProvider(PopupChromeFactory.getProvider());
@@ -186,6 +195,7 @@ public interface StageThree {
       ReplyIndicatorController.install(actions, edit, panel);
       EditController.install(focus, actions, panel);
       ParticipantController.install(panel, models, profiles, getLocalDomain());
+      KeepFocusInView.install(edit, panel);
       stageTwo.getDiffController().upgrade(edit);
     }
   }

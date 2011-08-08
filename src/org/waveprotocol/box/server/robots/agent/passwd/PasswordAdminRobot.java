@@ -30,7 +30,7 @@ import org.apache.commons.cli.CommandLine;
 import org.waveprotocol.box.server.CoreSettings;
 import org.waveprotocol.box.server.persistence.AccountStore;
 import org.waveprotocol.box.server.persistence.PersistenceException;
-import org.waveprotocol.box.server.robots.agent.AbstractRobotAgent;
+import org.waveprotocol.box.server.robots.agent.AbstractCliRobotAgent;
 import org.waveprotocol.wave.model.wave.InvalidParticipantAddress;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 
@@ -44,7 +44,7 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("serial")
 @Singleton
-public final class PasswordAdminRobot extends AbstractRobotAgent {
+public final class PasswordAdminRobot extends AbstractCliRobotAgent {
 
   private static final Logger LOG = Logger.getLogger(PasswordAdminRobot.class.getName());
   public static final String ROBOT_URI = AGENT_PREFIX_URI + "/passwd/admin";
