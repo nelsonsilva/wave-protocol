@@ -184,16 +184,21 @@ public class WebClient implements EntryPoint {
   }
 
   private void setupSearchPanel() {
-    // On wave selection, fire an event.
-    SearchPresenter.WaveSelectionHandler selectHandler =
-        new SearchPresenter.WaveSelectionHandler() {
+    // On wave action fire an event.
+    SearchPresenter.WaveActionHandler actionHandler =
+        new SearchPresenter.WaveActionHandler() {
+          @Override
+          public void onCreateWave() {
+            ClientEvents.get().fireEvent(WaveCreationEvent.CREATE_NEW_WAVE);
+          }
+
           @Override
           public void onWaveSelected(WaveId id) {
             ClientEvents.get().fireEvent(new WaveSelectionEvent(WaveRef.of(id)));
           }
         };
     Search search = SimpleSearch.create(RemoteSearchService.create(), waveStore);
-    SearchPresenter.create(search, searchPanel, selectHandler, profiles);
+    SearchPresenter.create(search, searchPanel, actionHandler, profiles);
   }
 
   private void setupWavePanel() {
