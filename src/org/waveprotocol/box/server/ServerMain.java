@@ -35,6 +35,7 @@ import org.waveprotocol.box.server.authentication.SessionManager;
 import org.waveprotocol.box.server.frontend.ClientFrontend;
 import org.waveprotocol.box.server.frontend.ClientFrontendImpl;
 import org.waveprotocol.box.server.frontend.WaveClientRpcImpl;
+import org.waveprotocol.box.server.frontend.WaveletInfo;
 import org.waveprotocol.box.server.persistence.AccountStore;
 import org.waveprotocol.box.server.persistence.PersistenceException;
 import org.waveprotocol.box.server.persistence.PersistenceModule;
@@ -246,8 +247,9 @@ public class ServerMain {
     HashedVersionFactory hashFactory = injector.getInstance(HashedVersionFactory.class);
 
     WaveletProvider provider = injector.getInstance(WaveletProvider.class);
+    WaveletInfo waveletInfo = WaveletInfo.create(hashFactory, provider);
     ClientFrontend frontend =
-        ClientFrontendImpl.create(hashFactory, provider, waveBus);
+        ClientFrontendImpl.create(provider, waveBus, waveletInfo);
 
     ProtocolWaveClientRpc.Interface rpcImpl = WaveClientRpcImpl.create(frontend, false);
     server.registerService(ProtocolWaveClientRpc.newReflectiveService(rpcImpl));

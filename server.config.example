@@ -6,7 +6,7 @@
 
 
 # Domain name of the wave server 
-# Default value: local
+# Default value: local.net
 wave_server_domain = @WAVE_SERVER_DOMAIN@
 
 # A comma separated list of address on which to listen for connections.
@@ -65,6 +65,11 @@ delta_store_type = @DELTA_STORE_TYPE@
 # for other data store types.
 # Default value: _deltas
 delta_store_directory = @DELTA_STORE_DIRECTORY@
+
+# The location where user sessions are persisted on disk. This allow to restore user sessions
+# between restarts.
+# Default value: _sessions
+sessions_store_directory = @SESSIONS_STORE_DIRECTORY@
 
 # Set false to use raw WebSockets instead of Socket.IO (still a bit experimental) in the webclient
 # Default value: true

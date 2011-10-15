@@ -225,8 +225,8 @@
   <target name="compile-dep">
     <uptodate targetfile="${dep}/compile" property="skip.compile">
       <srcfiles dir="${lib.dir}"/>
-      <srcfiles dir="${src.dir}" includes="**/*.java"/>
-      <srcfiles dir="${gen.dir}" includes="**/*.java"/>
+      <srcfiles dir="${src.dir}" includes="**"/>
+      <srcfiles dir="${gen.dir}" includes="**"/>
     </uptodate>
   </target>
   <target name="compile" depends="compile-proto, compile-gxp, compile-messages, compile-dep"

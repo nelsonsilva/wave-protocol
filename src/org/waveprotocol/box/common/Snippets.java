@@ -17,6 +17,8 @@
 
 package org.waveprotocol.box.common;
 
+import com.google.common.collect.Lists;
+
 import org.waveprotocol.wave.model.document.operation.AnnotationBoundaryMap;
 import org.waveprotocol.wave.model.document.operation.Attributes;
 import org.waveprotocol.wave.model.document.operation.AttributesUpdate;
@@ -31,6 +33,7 @@ import org.waveprotocol.wave.model.wave.data.WaveletData;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility methods for rendering snippets.
@@ -132,12 +135,24 @@ public final class Snippets {
   public static String renderSnippet(final ReadableWaveletData wavelet,
  final int maxSnippetLength) {
     final StringBuilder sb = new StringBuilder();
-    ReadableBlipData blip = wavelet.getDocument(DocumentConstants.CONVERSATION);
-    if (blip == null) {
+    Set<String> docsIds = wavelet.getDocumentIds();
+    long newestLmt = -1;
+    ReadableBlipData newestBlip = null;
+    for (String docId : docsIds) {
+      ReadableBlipData blip = wavelet.getDocument(docId);
+      long currentLmt = blip.getLastModifiedTime();
+      if (currentLmt > newestLmt) {
+        newestLmt = currentLmt;
+        newestBlip = blip;
+      }
+    }
+    if (newestBlip == null) {
       // Render whatever data we have and hope its good enough
       sb.append(collateTextForWavelet(wavelet));
     } else {
-      DocOp docOp = blip.getContent().asOperation();
+      DocOp docOp = newestBlip.getContent().asOperation();
+      sb.append(collateTextForOps(Lists.newArrayList(docOp)));
+      sb.append(" ");
       docOp.apply(InitializationCursorAdapter.adapt(new DocInitializationCursor() {
         @Override
         public void annotationBoundary(AnnotationBoundaryMap map) {

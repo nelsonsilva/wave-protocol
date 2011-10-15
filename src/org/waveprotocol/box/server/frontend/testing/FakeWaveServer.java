@@ -23,13 +23,11 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 
 import org.waveprotocol.box.common.DeltaSequence;
-import org.waveprotocol.box.common.IndexWave;
 import org.waveprotocol.box.common.comms.WaveClientRpc;
 import org.waveprotocol.box.server.common.CoreWaveletOperationSerializer;
 import org.waveprotocol.box.server.util.WaveletDataUtil;
 import org.waveprotocol.box.server.waveserver.WaveletProvider.SubmitRequestListener;
 import org.waveprotocol.wave.federation.Proto.ProtocolWaveletDelta;
-import org.waveprotocol.wave.federation.Proto.ProtocolWaveletOperation;
 import org.waveprotocol.wave.model.id.IdFilter;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.id.WaveletId;
@@ -93,8 +91,6 @@ public class FakeWaveServer extends FakeClientFrontend {
   @Override
   public void submitRequest(ParticipantId loggedInUser, WaveletName waveletName,
       ProtocolWaveletDelta delta, @Nullable String channelId, SubmitRequestListener listener) {
-    Preconditions.checkArgument(
-        !IndexWave.isIndexWave(waveletName.waveId), "Cannot modify index wave");
     super.submitRequest(loggedInUser, waveletName, delta, channelId, listener);
 
     Map<WaveletId, WaveletData> wavelets = waves.get(waveletName.waveId);
@@ -124,64 +120,6 @@ public class FakeWaveServer extends FakeClientFrontend {
     // ignored.
     waveletUpdate(wavelet, DeltaSequence.of(versionedDelta));
     // Send a corresponding update of the index wave.
-    doIndexUpdate(wavelet, delta);
-  }
-
-  /**
-   * Generate and send an update of the user's index wave based on the specified delta.
-   *
-   * @param wavelet wavelet being changed
-   * @param delta the delta on the wavelet
-   */
-  private void doIndexUpdate(WaveletData wavelet, ProtocolWaveletDelta delta) {
-    // If the wavelet cannot be indexed, then the delta doesn't affect the index wave.
-    WaveletName waveletName = WaveletName.of(wavelet.getWaveId(), wavelet.getWaveletId());
-    if (!IndexWave.canBeIndexed(waveletName)) {
-      return;
-    }
-
-    // TODO(Michael): Use IndexWave.createIndexDeltas instead of all this.
-
-    // Go over the delta operations and extract only the add/remove participant ops that involve
-    // our user. We do not update the index digests nor care about other users being added/removed.
-    ProtocolWaveletDelta.Builder indexDelta = ProtocolWaveletDelta.newBuilder();
-    for (ProtocolWaveletOperation op : delta.getOperationList()) {
-      boolean copyOp = false;
-      if (op.hasAddParticipant()) {
-        copyOp |= (new ParticipantId(op.getAddParticipant()).equals(user));
-      }
-      if (op.hasRemoveParticipant()) {
-        copyOp |= (new ParticipantId(op.getRemoveParticipant()).equals(user));
-      }
-      if (copyOp) {
-        indexDelta.addOperation(ProtocolWaveletOperation.newBuilder(op).build());
-      }
-    }
-
-    // If there is nothing to send, we're done.
-    if (indexDelta.getOperationCount() == 0) {
-      return;
-    }
-
-    // Find the index wavelet name and version. Update the version.
-    WaveletName indexWaveletName = IndexWave.indexWaveletNameFor(wavelet.getWaveId());
-    HashedVersion targetVersion = versions.get(indexWaveletName);
-    if (targetVersion == null) {
-      targetVersion = HashedVersion.unsigned(0);
-    }
-
-    // Finish constructing the index wavelet delta and send it to the client.
-    indexDelta.setAuthor(delta.getAuthor());
-    indexDelta.setHashedVersion(CoreWaveletOperationSerializer.serialize(targetVersion));
-    long dummyCreationTime = System.currentTimeMillis();
-    WaveletData fakeIndexWavelet = WaveletDataUtil.createEmptyWavelet(
-        indexWaveletName, ParticipantId.ofUnsafe(delta.getAuthor()),
-        targetVersion, dummyCreationTime);
-    HashedVersion resultingVersion =
-      updateAndGetVersion(indexWaveletName, indexDelta.getOperationCount());
-    waveletUpdate(fakeIndexWavelet, DeltaSequence.of(
-        CoreWaveletOperationSerializer.deserialize(indexDelta.build(),
-            resultingVersion, APP_TIMESTAMP)));
   }
 
   /**

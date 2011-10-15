@@ -28,8 +28,8 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.SplitLayoutPanel;
 import com.google.gwt.user.client.ui.UIObject;
@@ -58,6 +58,11 @@ import org.waveprotocol.wave.client.common.safehtml.SafeHtmlBuilder;
 import org.waveprotocol.wave.client.common.util.AsyncHolder.Accessor;
 import org.waveprotocol.wave.client.debug.logger.LogLevel;
 import org.waveprotocol.wave.client.widget.common.ImplPanel;
+import org.waveprotocol.wave.client.widget.popup.CenterPopupPositioner;
+import org.waveprotocol.wave.client.widget.popup.PopupChrome;
+import org.waveprotocol.wave.client.widget.popup.PopupChromeFactory;
+import org.waveprotocol.wave.client.widget.popup.PopupFactory;
+import org.waveprotocol.wave.client.widget.popup.UniversalPopup;
 import org.waveprotocol.wave.model.id.IdGenerator;
 import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.wave.ParticipantId;
@@ -84,8 +89,19 @@ public class WebClient implements EntryPoint {
   // Please also see WebClientDemo.gwt.xml.
   private static final Logger REMOTE_LOG = Logger.getLogger("REMOTE_LOG");
 
-  /** Provides user profile data, like avatar URL and user display name.*/
+  /** Creates a popup that warns about network disconnects. */
+  private static UniversalPopup createTurbulencePopup() {
+    PopupChrome chrome = PopupChromeFactory.createPopupChrome();
+    UniversalPopup popup =
+        PopupFactory.createPopup(null, new CenterPopupPositioner(), chrome, true);
+    popup.add(new HTML("<div style='color: red; padding: 5px; text-align: center;'>"
+        + "<b>A turbulence detected!<br></br>"
+        + " Please save your last changes to somewhere and reload the wave.</b></div>"));
+    return popup;
+  }
+
   private final ProfileManager profiles = new RemoteProfileManagerImpl();
+  private final UniversalPopup turbulencePopup = createTurbulencePopup();
 
   @UiField
   SplitLayoutPanel splitPanel;
@@ -229,14 +245,14 @@ public class WebClient implements EntryPoint {
               element.setInnerText("Online");
               element.setClassName("online");
               isTurbulenceDetected = false;
+              turbulencePopup.hide();
               break;
             case DISCONNECTED:
               element.setInnerText("Offline");
               element.setClassName("offline");
               if (!isTurbulenceDetected) {
                 isTurbulenceDetected = true;
-                Window.alert("A turbulence detected!"
-                    + " Please save your last changes to somewhere and reload the wave.");
+                turbulencePopup.show();
               }
               break;
             case RECONNECTING:

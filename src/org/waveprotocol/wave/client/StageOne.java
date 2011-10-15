@@ -30,8 +30,10 @@ import org.waveprotocol.wave.client.wavepanel.impl.collapse.CollapsePresenter;
 import org.waveprotocol.wave.client.wavepanel.impl.focus.FocusFrameBuilder;
 import org.waveprotocol.wave.client.wavepanel.impl.focus.FocusFramePresenter;
 import org.waveprotocol.wave.client.wavepanel.view.BlipView;
+import org.waveprotocol.wave.client.wavepanel.view.dom.CssProvider;
 import org.waveprotocol.wave.client.wavepanel.view.dom.FullStructure;
 import org.waveprotocol.wave.client.wavepanel.view.dom.UpgradeableDomAsViewProvider;
+import org.waveprotocol.wave.client.wavepanel.view.dom.full.WavePanelResourceLoader;
 
 /**
  * The first stage of Undercurrent code.
@@ -127,7 +129,7 @@ public interface StageOne {
 
     /** @return the interpreter of DOM elements as semantic views. */
     protected UpgradeableDomAsViewProvider createViewProvider() {
-      return new FullStructure();
+      return new FullStructure(createCssProvider());
     }
 
     /** @return the wave panel. Subclasses may override. */
@@ -145,6 +147,11 @@ public interface StageOne {
     /** @return the collapse feature. Subclasses may override. */
     protected CollapsePresenter createCollapsePresenter() {
       return CollapseBuilder.createAndInstallIn(getWavePanel());
+    }
+    
+    /** @return the source of CSS rules to apply in views. */
+    protected CssProvider createCssProvider() {
+      return WavePanelResourceLoader.createCssProvider();
     }
 
     /**

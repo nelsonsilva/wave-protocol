@@ -19,11 +19,15 @@ package org.waveprotocol.wave.model.wave;
 
 import org.waveprotocol.wave.model.util.Preconditions;
 
+import java.io.Serializable;
+
 /**
  * A ParticipantId uniquely identifies a participant. It looks like an email
  * address, e.g. 'joe@example.com'
  */
-public final class ParticipantId implements Comparable<ParticipantId> {
+public final class ParticipantId implements Comparable<ParticipantId>, Serializable {
+
+  private static final long serialVersionUID = -1465142562958113670L;
 
   /** The prefix of a domain in the ParticpantId */
   public static final String DOMAIN_PREFIX = "@";

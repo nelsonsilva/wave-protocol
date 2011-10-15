@@ -49,7 +49,10 @@ public final class SearchPresenter
    * Handles wave actions.
    */
   public interface WaveActionHandler {
+    /** Handles the wave creation action. */
     void onCreateWave();
+
+    /** Handles a wave selection action. */
     void onWaveSelected(WaveId id);
   }
 

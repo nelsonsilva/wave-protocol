@@ -42,6 +42,7 @@ public class CoreSettings {
   public static final String ACCOUNT_STORE_DIRECTORY = "account_store_directory";
   public static final String DELTA_STORE_TYPE = "delta_store_type";
   public static final String DELTA_STORE_DIRECTORY = "delta_store_directory";
+  public static final String SESSIONS_STORE_DIRECTORY = "sessions_store_directory";
   public static final String FLASHSOCKET_POLICY_PORT = "flashsocket_policy_port";
   public static final String USE_SOCKETIO = "use_socketio";
   public static final String GADGET_SERVER_HOSTNAME = "gadget_server_hostname";
@@ -115,6 +116,12 @@ public class CoreSettings {
           + "wave-in-a-box process. Only used by file-based account store.",
       defaultValue = "_deltas")
   private static String deltaStoreDirectory;
+
+  @Setting(name = SESSIONS_STORE_DIRECTORY,
+      description = "Location on disk where the user sessions are persisted. Must be writeable by the "
+          + "wave-in-a-box process.",
+      defaultValue = "_sessions")
+  private static String sessionsStoreDirectory;
 
   @Setting(name = FLASHSOCKET_POLICY_PORT,
       description = "Port on which to listen for Flashsocket policy requests.",

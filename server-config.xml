@@ -2,7 +2,7 @@
   <description>Creates the server configuration file.</description>
   
   <!-- Properties for server.config -->
-  <property name="wave_server_domain" value="local" />
+  <property name="wave_server_domain" value="local.net" />
   <property name="http_frontend_public_address" value="localhost:9898" />
   <property name="http_frontend_addresses"
             value="${http_frontend_public_address}" />
@@ -15,6 +15,7 @@
   <property name="attachment_store_directory" value="_attachments" />
   <property name="account_store_directory" value="_accounts" />
   <property name="delta_store_directory" value="_deltas" />
+  <property name="sessions_store_directory" value="_sessions" />
   <property name="use_socketio" value="true" />
   <property name="admin_user" value="@${wave_server_domain}" />
   <property name="welcome_wave_id" value="" />
@@ -40,6 +41,7 @@
     <mkdir dir="${attachment_store_directory}" />
     <mkdir dir="${account_store_directory}" />
     <mkdir dir="${delta_store_directory}" />
+    <mkdir dir="${sessions_store_directory}" />
   </target>
 
   <target name="server-config" depends="create-folders"
@@ -71,6 +73,7 @@
           <token key="ACCOUNT_STORE_DIRECTORY"
                  value="${account_store_directory}" />
           <token key="DELTA_STORE_DIRECTORY" value="${delta_store_directory}" />
+          <token key="SESSIONS_STORE_DIRECTORY" value="${sessions_store_directory}" />
           <token key="USE_SOCKETIO" value="${use_socketio}" />
           <token key="ADMIN_USER" value="${admin_user}" />
           <token key="WELCOME_WAVE_ID" value="${welcome_wave_id}" />

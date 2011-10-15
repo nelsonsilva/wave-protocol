@@ -32,21 +32,20 @@ import com.google.gwt.dom.client.Style.Display;
 import org.waveprotocol.wave.client.common.util.UserAgent;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.CollapsibleBuilder;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.CollapsibleBuilder.Components;
-import org.waveprotocol.wave.client.wavepanel.view.dom.full.WavePanelResourceLoader;
 
 /**
  * DOM implementation of an inline thread.
  *
  */
 final class CollapsibleDomImpl implements DomView {
-  /** Shorthand. */
-  private final static CollapsibleBuilder.Css CSS = WavePanelResourceLoader.getCollapsible().css();
-
   /** The DOM element of this view. */
   private final Element self;
 
   /** The HTML id of {@code self}. */
   private final String id;
+  
+  /** The CSS classes used to manipulate style based on state changes. */
+  private final CollapsibleBuilder.Css css;
 
   //
   // UI fields for both intrinsic and structural elements.
@@ -67,17 +66,18 @@ final class CollapsibleDomImpl implements DomView {
    */
   private boolean isRepaired;
 
-  CollapsibleDomImpl(Element e, String id) {
+  CollapsibleDomImpl(Element e, String id, CollapsibleBuilder.Css css) {
     this.self = e;
     this.id = id;
+    this.css = css;
   }
 
-  public static CollapsibleDomImpl of(Element e) {
-    return new CollapsibleDomImpl(e, e.getId());
+  public static CollapsibleDomImpl of(Element e, CollapsibleBuilder.Css css) {
+    return new CollapsibleDomImpl(e, e.getId(), css);
   }
 
-  public static CollapsibleDomImpl ofToggle(Element e) {
-    return of(Document.get().getElementById(Components.TOGGLE.getBaseId(e.getId())));
+  public static CollapsibleDomImpl ofToggle(Element e, CollapsibleBuilder.Css css) {
+    return of(Document.get().getElementById(Components.TOGGLE.getBaseId(e.getId())), css);
   }
 
   public boolean isCollapsed() {
@@ -120,12 +120,12 @@ final class CollapsibleDomImpl implements DomView {
    * chrome elements after a state change.
    */
   private void updatedCssClassNames() {
-    String readStateClass = " " + (isRead() ? CSS.read() : CSS.unread());
-    String collapsedStateClass = " " + (isCollapsed() ? CSS.collapsed() : CSS.expanded());
+    String readStateClass = " " + (isRead() ? css.read() : css.unread());
+    String collapsedStateClass = " " + (isCollapsed() ? css.collapsed() : css.expanded());
 
-    getToggle().setClassName(CSS.toggle() + collapsedStateClass + readStateClass);
-    getChrome().setClassName(CSS.chrome() + collapsedStateClass);
-    getDropContainer().setClassName(CSS.dropContainer() + collapsedStateClass);
+    getToggle().setClassName(css.toggle() + collapsedStateClass + readStateClass);
+    getChrome().setClassName(css.chrome() + collapsedStateClass);
+    getDropContainer().setClassName(css.dropContainer() + collapsedStateClass);
   }
 
 
