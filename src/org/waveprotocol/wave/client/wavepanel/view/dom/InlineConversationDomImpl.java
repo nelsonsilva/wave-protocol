@@ -22,6 +22,7 @@ import static org.waveprotocol.wave.client.wavepanel.view.dom.DomViewHelper.getL
 import com.google.gwt.dom.client.Element;
 
 import org.waveprotocol.wave.client.wavepanel.view.IntrinsicInlineConversationView;
+import org.waveprotocol.wave.client.wavepanel.view.dom.full.CollapsibleBuilder;
 
 /**
  * DOM implementation of an inline thread.
@@ -35,8 +36,8 @@ public final class InlineConversationDomImpl implements DomView, IntrinsicInline
     this.c = c;
   }
 
-  public static InlineConversationDomImpl of(Element e) {
-    return new InlineConversationDomImpl(CollapsibleDomImpl.of(e));
+  public static InlineConversationDomImpl of(Element e, CollapsibleBuilder.Css css) {
+    return new InlineConversationDomImpl(CollapsibleDomImpl.of(e, css));
   }
 
 

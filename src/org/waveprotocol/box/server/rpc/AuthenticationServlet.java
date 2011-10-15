@@ -166,8 +166,6 @@ public class AuthenticationServlet extends HttpServlet {
 
     HttpSession session = req.getSession(true);
     sessionManager.setLoggedInUser(session, loggedInAddress);
-    // The context needs to be notified when the user logs out.
-    session.setAttribute("context", context);
     LOG.info("Authenticated user " + loggedInAddress);
 
     redirectLoggedInUser(req, resp);

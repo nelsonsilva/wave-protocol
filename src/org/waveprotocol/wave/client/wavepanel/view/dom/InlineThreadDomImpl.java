@@ -20,6 +20,7 @@ package org.waveprotocol.wave.client.wavepanel.view.dom;
 import com.google.gwt.dom.client.Element;
 
 import org.waveprotocol.wave.client.wavepanel.view.IntrinsicInlineThreadView;
+import org.waveprotocol.wave.client.wavepanel.view.dom.full.CollapsibleBuilder;
 
 /**
  * DOM implementation of an inline thread.
@@ -33,12 +34,12 @@ public final class InlineThreadDomImpl implements DomView, IntrinsicInlineThread
     this.c = c;
   }
 
-  public static InlineThreadDomImpl of(Element e) {
-    return new InlineThreadDomImpl(CollapsibleDomImpl.of(e));
+  public static InlineThreadDomImpl of(Element e, CollapsibleBuilder.Css css) {
+    return new InlineThreadDomImpl(CollapsibleDomImpl.of(e, css));
   }
 
-  public static InlineThreadDomImpl ofToggle(Element e) {
-    return new InlineThreadDomImpl(CollapsibleDomImpl.ofToggle(e));
+  public static InlineThreadDomImpl ofToggle(Element e, CollapsibleBuilder.Css css) {
+    return new InlineThreadDomImpl(CollapsibleDomImpl.ofToggle(e, css));
   }
 
   @Override

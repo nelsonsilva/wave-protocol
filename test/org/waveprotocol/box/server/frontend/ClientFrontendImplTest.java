@@ -40,18 +40,14 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.waveprotocol.box.common.DeltaSequence;
 import org.waveprotocol.box.common.ExceptionalIterator;
-import org.waveprotocol.box.common.IndexWave;
 import org.waveprotocol.box.common.comms.WaveClientRpc.WaveletVersion;
 import org.waveprotocol.box.server.common.CoreWaveletOperationSerializer;
 import org.waveprotocol.box.server.frontend.ClientFrontend.OpenListener;
 import org.waveprotocol.box.server.util.WaveletDataUtil;
-import org.waveprotocol.box.server.waveserver.WaveBus;
 import org.waveprotocol.box.server.waveserver.WaveServerException;
 import org.waveprotocol.box.server.waveserver.WaveletProvider;
 import org.waveprotocol.box.server.waveserver.WaveletProvider.SubmitRequestListener;
 import org.waveprotocol.wave.federation.Proto.ProtocolWaveletDelta;
-import org.waveprotocol.wave.model.document.operation.DocOp;
-import org.waveprotocol.wave.model.document.operation.impl.DocOpBuilder;
 import org.waveprotocol.wave.model.id.IdConstants;
 import org.waveprotocol.wave.model.id.IdFilter;
 import org.waveprotocol.wave.model.id.IdFilters;
@@ -60,17 +56,13 @@ import org.waveprotocol.wave.model.id.WaveId;
 import org.waveprotocol.wave.model.id.WaveletId;
 import org.waveprotocol.wave.model.id.WaveletName;
 import org.waveprotocol.wave.model.operation.OperationException;
-import org.waveprotocol.wave.model.operation.wave.BlipContentOperation;
 import org.waveprotocol.wave.model.operation.wave.TransformedWaveletDelta;
-import org.waveprotocol.wave.model.operation.wave.WaveletBlipOperation;
 import org.waveprotocol.wave.model.operation.wave.WaveletOperation;
-import org.waveprotocol.wave.model.operation.wave.WaveletOperationContext;
 import org.waveprotocol.wave.model.testing.DeltaTestUtil;
 import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.version.HashedVersionFactory;
 import org.waveprotocol.wave.model.version.HashedVersionFactoryImpl;
 import org.waveprotocol.wave.model.wave.ParticipantId;
-import org.waveprotocol.wave.model.wave.data.BlipData;
 import org.waveprotocol.wave.model.wave.data.ReadableWaveletData;
 import org.waveprotocol.wave.model.wave.data.WaveletData;
 import org.waveprotocol.wave.util.escapers.jvm.JavaUrlCodec;
@@ -95,8 +87,6 @@ public class ClientFrontendImplTest extends TestCase {
   private static final WaveletId W2 = WaveletId.of("example.com", "conv+2");
   private static final WaveletName WN1 = WaveletName.of(WAVE_ID, W1);
   private static final WaveletName WN2 = WaveletName.of(WAVE_ID, W2);
-  private static final WaveletName INDEX_WAVELET_NAME =
-      WaveletName.of(INDEX_WAVE_ID, WaveletId.of("example.com", WAVE_ID.getId()));
 
   private static final ParticipantId USER = new ParticipantId("user@example.com");
   private static final DeltaTestUtil UTIL = new DeltaTestUtil(USER);
@@ -122,8 +112,8 @@ public class ClientFrontendImplTest extends TestCase {
     waveletProvider = mock(WaveletProvider.class);
     when(waveletProvider.getWaveletIds(any(WaveId.class))).thenReturn(ImmutableSet.<WaveletId>of());
 
-    WaveBus waveBus = mock(WaveBus.class);
-    clientFrontend = new ClientFrontendImpl(HASH_FACTORY, waveletProvider);
+    WaveletInfo waveletInfo = WaveletInfo.create(HASH_FACTORY, waveletProvider);
+    clientFrontend = new ClientFrontendImpl(waveletProvider, waveletInfo);
   }
 
   public void testCannotOpenWavesWhenNotLoggedIn() throws Exception {
@@ -158,7 +148,7 @@ public class ClientFrontendImplTest extends TestCase {
     when(waveletProvider.getWaveletIds(WAVE_ID)).thenReturn(ImmutableSet.of(W1, W2));
     when(waveletProvider.checkAccessPermission(WN1, USER)).thenReturn(true);
     when(waveletProvider.checkAccessPermission(WN2, USER)).thenReturn(true);
-    
+
     OpenListener listener = openWave(IdFilters.ALL_IDS);
     verify(listener).onUpdate(eq(WN1), eq(snapshot1), eq(DeltaSequence.empty()),
         eq(V0), isNullMarker(), any(String.class));
@@ -219,17 +209,6 @@ public class ClientFrontendImplTest extends TestCase {
     verifyZeroInteractions(submitListener);
   }
 
-  public void testCannotSubmitToIndexWave() throws WaveServerException {
-    provideWaves(Collections.<WaveId> emptySet());
-    OpenListener openListener = openWave(INDEX_WAVE_ID, IdFilters.ALL_IDS);
-    String channelId = verifyChannelId(openListener);
-
-    SubmitRequestListener submitListener = mock(SubmitRequestListener.class);
-    clientFrontend.submitRequest(USER, INDEX_WAVELET_NAME, SERIALIZED_DELTA, channelId,
-        submitListener);
-    verify(submitListener).onFailure(anyString());
-  }
-
   public void testCannotSubmitAsDifferentUser() {
     ParticipantId otherParticipant = new ParticipantId("another@example.com");
     OpenListener openListener = openWave(IdFilters.ALL_IDS);
@@ -241,27 +220,6 @@ public class ClientFrontendImplTest extends TestCase {
     verify(submitListener).onFailure(anyString());
     verify(submitListener, never()).onSuccess(anyInt(), (HashedVersion) any(), anyLong());
   }
-
-  // FIXME (Yuri Z.) Make this test work. The issue is - the participants set
-  // for the wavelet is empty, so the size of wavelets is 0 and
-  // isDeltasStartingAt(0) is failing. It wasn't a problem before fix to issue
-  // http://code.google.com/p/wave-protocol/issues/detail?id=231 was applied as
-  // authoorization in order to access a wavelet was not
-  // enforced.
-  /**
-  public void testIndexContainsWaveFromStore() throws Exception {
-    provideWaves(Collections.singleton(WAVE_ID));
-    CommittedWaveletSnapshot snapshot1 = provideWavelet(WN1);
-    clientFrontend.initialiseAllWaves();
-
-    OpenListener listener = openWave(INDEX_WAVE_ID, IdFilters.ALL_IDS);
-    verifyMarker(listener, INDEX_WAVE_ID);
-
-    WaveletName indexWavelet1 = IndexWave.indexWaveletNameFor(WAVE_ID);
-    verify(listener).onUpdate(eq(indexWavelet1), isNullSnapshot(),
-        isDeltasStartingAt(0), isNullVersion(), isNullMarker(), any(String.class));
-  }
-  */
 
   /**
    * Tests that if we open the index wave, we don't get updates from the
@@ -288,37 +246,6 @@ public class ClientFrontendImplTest extends TestCase {
         any(CommittedWaveletSnapshot.class),
         isDeltasStartingAt(0),
         any(HashedVersion.class), isNullMarker(), anyString());
-  }
-
-  /**
-   * Tests that a delta involving an addParticipant and a characters op
-   * gets pushed through to the index wave as deltas that just summarise
-   * the changes to the digest text and the participants, ignoring any
-   * text from the first \n onwards.
-   */
-  public void testInterestingDeltasUpdateIndex() throws OperationException, WaveServerException {
-    provideWaves(Collections.singleton(WAVE_ID));
-    CommittedWaveletSnapshot snapshot1 = provideWavelet(WN1);
-    clientFrontend.initialiseAllWaves();
-
-    OpenListener listener = openWave(INDEX_WAVE_ID, IdFilters.ALL_IDS);
-    verifyMarker(listener, INDEX_WAVE_ID);
-
-    WaveletData wavelet = ((WaveletData) snapshot1.snapshot);
-    BlipData blip = WaveletDataUtil.addEmptyBlip(wavelet, "default", USER, 0L);
-    blip.getContent().consume(makeAppend(0, "Hello, world\nignored text"));
-
-    waveletUpdate(V2, 0L, wavelet, UTIL.addParticipant(USER));
-
-    WaveletOperation expectedDigestOp =
-        makeAppendOp(IndexWave.DIGEST_DOCUMENT_ID, 0, "Hello, world", new WaveletOperationContext(
-            IndexWave.DIGEST_AUTHOR, 0L, 1, V2));
-    HashedVersion v1 = HashedVersion.unsigned(1);
-    DeltaSequence expectedDeltas = DeltaSequence.of(
-        makeDelta(USER, v1, 0L, UTIL.addParticipant(USER)),
-        makeDelta(IndexWave.DIGEST_AUTHOR, V2, 0L, expectedDigestOp));
-    verify(listener).onUpdate(eq(INDEX_WAVELET_NAME), isNullSnapshot(), eq(expectedDeltas),
-        isNullVersion(), isNullMarker(), any(String.class));
   }
 
   /**
@@ -364,28 +291,6 @@ public class ClientFrontendImplTest extends TestCase {
     when(waveletProvider.getHistory(name, V0, V1)).thenReturn(DELTAS);
     when(waveletProvider.getWaveletIds(name.waveId)).thenReturn(ImmutableSet.of(name.waveletId));
     return snapshot;
-  }
-
-  private void waveletUpdate(HashedVersion endVersion, long timestamp,
-      WaveletData wavelet, WaveletOperation... operations) {
-    TransformedWaveletDelta delta = makeDelta(USER, endVersion, timestamp, operations);
-    DeltaSequence deltas = DeltaSequence.of(delta);
-    clientFrontend.waveletUpdate(wavelet, deltas);
-  }
-
-  private static DocOp makeAppend(int retain, String text) {
-    DocOpBuilder builder = new DocOpBuilder();
-    if (retain > 0) {
-      builder.retain(retain);
-    }
-    builder.characters(text);
-    return builder.build();
-  }
-
-  private static WaveletBlipOperation makeAppendOp(String documentId, int retain, String text,
-      WaveletOperationContext context) {
-    return new WaveletBlipOperation(documentId,
-        new BlipContentOperation(context, makeAppend(retain, text)));
   }
 
   /**

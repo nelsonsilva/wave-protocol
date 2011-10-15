@@ -17,54 +17,26 @@ package org.waveprotocol.wave.client.wavepanel.render;
 
 import com.google.gwt.dom.client.Element;
 
-import org.waveprotocol.wave.client.account.ProfileManager;
 import org.waveprotocol.wave.client.common.safehtml.SafeHtmlBuilder;
-import org.waveprotocol.wave.client.render.ReductionBasedRenderer;
-import org.waveprotocol.wave.client.render.RenderingRules;
 import org.waveprotocol.wave.client.render.WaveRenderer;
-import org.waveprotocol.wave.client.state.ThreadReadStateMonitor;
 import org.waveprotocol.wave.client.uibuilder.UiBuilder;
-import org.waveprotocol.wave.client.wavepanel.render.FullDomRenderer.DocRefRenderer;
-import org.waveprotocol.wave.client.wavepanel.view.ViewIdMapper;
-import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipQueueRenderer;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.DomRenderer;
-import org.waveprotocol.wave.client.wavepanel.view.dom.full.ViewFactory;
 import org.waveprotocol.wave.model.conversation.Conversation;
 import org.waveprotocol.wave.model.conversation.ConversationBlip;
 import org.waveprotocol.wave.model.conversation.ConversationThread;
 import org.waveprotocol.wave.model.conversation.ConversationView;
-import org.waveprotocol.wave.model.util.IdentityMap;
 import org.waveprotocol.wave.model.wave.ParticipantId;
 
 /**
  * Renders waves into HTML DOM, given a renderer that renders waves as HTML
  * closures.
- *
  */
-public final class FullDomWaveRendererImpl implements DomRenderer {
+public final class HtmlDomRenderer implements DomRenderer {
 
   private final WaveRenderer<UiBuilder> driver;
 
-  private FullDomWaveRendererImpl(WaveRenderer<UiBuilder> driver) {
+  public HtmlDomRenderer(WaveRenderer<UiBuilder> driver) {
     this.driver = driver;
-  }
-
-  public static DomRenderer create(ConversationView wave, ProfileManager profileManager,
-      ShallowBlipRenderer shallowRenderer, ViewIdMapper idMapper, final BlipQueueRenderer pager,
-      ThreadReadStateMonitor readMonitor, ViewFactory views) {
-    DocRefRenderer docRenderer = new DocRefRenderer() {
-      @Override
-      public UiBuilder render(
-          ConversationBlip blip, IdentityMap<ConversationThread, UiBuilder> replies) {
-        // Documents are rendered blank, and filled in later when they get paged
-        // in.
-        pager.add(blip);
-        return DocRefRenderer.EMPTY.render(blip, replies);
-      }
-    };
-    RenderingRules<UiBuilder> rules = new FullDomRenderer(
-        shallowRenderer, docRenderer, profileManager, idMapper, views, readMonitor);
-    return new FullDomWaveRendererImpl(ReductionBasedRenderer.of(rules, wave));
   }
 
   //

@@ -30,8 +30,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Composite;
 
-import org.waveprotocol.box.webclient.util.Pool;
-import org.waveprotocol.box.webclient.util.ToppingUpPool;
 import org.waveprotocol.box.webclient.widget.frame.FramedPanel;
 import org.waveprotocol.wave.client.common.util.LinkedSequence;
 import org.waveprotocol.wave.client.uibuilder.BuilderHelper;

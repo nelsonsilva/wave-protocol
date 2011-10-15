@@ -138,24 +138,23 @@ public class RobotRegistrarImpl implements RobotRegistrar {
   }
 
   @Override
-  public RobotAccountData reRegister(ParticipantId robotId, String location)
+  public RobotAccountData registerOrUpdate(ParticipantId robotId, String location)
       throws RobotRegistrationException, PersistenceException {
     Preconditions.checkNotNull(robotId);
     Preconditions.checkNotNull(location);
     Preconditions.checkArgument(!location.isEmpty());
 
     AccountData account = accountStore.getAccount(robotId);
-    if(account == null) {
-      throw new RobotRegistrationException("Account does not exist: " + robotId.getAddress());
+    if (account != null) {
+      throwExceptionIfNotRobot(account);
+      RobotAccountData robotAccount = account.asRobot();
+      if (robotAccount.getUrl().equals(location)) {
+        return robotAccount;
+      } else {
+        removeRobotAccount(robotAccount);
+      }
     }
-    throwExceptionIfNotRobot(account);
-    RobotAccountData robotAccount = account.asRobot();
-    if (robotAccount.getUrl().equals(location)) {
-      return robotAccount;
-    } else {
-      removeRobotAccount(robotAccount);
-      return registerRobot(robotId, location);
-    }
+    return registerRobot(robotId, location);
   }
 
   /**

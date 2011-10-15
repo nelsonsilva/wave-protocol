@@ -37,12 +37,15 @@ import org.waveprotocol.wave.client.doodad.title.TitleAnnotationHandler;
 import org.waveprotocol.wave.client.editor.content.Registries;
 import org.waveprotocol.wave.client.editor.content.misc.StyleAnnotationHandler;
 import org.waveprotocol.wave.client.gadget.Gadget;
+import org.waveprotocol.wave.client.render.ReductionBasedRenderer;
+import org.waveprotocol.wave.client.render.RenderingRules;
 import org.waveprotocol.wave.client.scheduler.Scheduler.Task;
 import org.waveprotocol.wave.client.scheduler.SchedulerInstance;
 import org.waveprotocol.wave.client.state.BlipReadStateMonitor;
 import org.waveprotocol.wave.client.state.BlipReadStateMonitorImpl;
 import org.waveprotocol.wave.client.state.ThreadReadStateMonitor;
 import org.waveprotocol.wave.client.state.ThreadReadStateMonitorImpl;
+import org.waveprotocol.wave.client.uibuilder.UiBuilder;
 import org.waveprotocol.wave.client.util.ClientFlags;
 import org.waveprotocol.wave.client.wave.InteractiveDocument;
 import org.waveprotocol.wave.client.wave.LazyContentDocument;
@@ -55,7 +58,9 @@ import org.waveprotocol.wave.client.wavepanel.impl.diff.DiffController;
 import org.waveprotocol.wave.client.wavepanel.impl.reader.Reader;
 import org.waveprotocol.wave.client.wavepanel.render.BlipPager;
 import org.waveprotocol.wave.client.wavepanel.render.DocumentRegistries;
-import org.waveprotocol.wave.client.wavepanel.render.FullDomWaveRendererImpl;
+import org.waveprotocol.wave.client.wavepanel.render.FullDomRenderer;
+import org.waveprotocol.wave.client.wavepanel.render.FullDomRenderer.DocRefRenderer;
+import org.waveprotocol.wave.client.wavepanel.render.HtmlDomRenderer;
 import org.waveprotocol.wave.client.wavepanel.render.InlineAnchorLiveRenderer;
 import org.waveprotocol.wave.client.wavepanel.render.LiveConversationViewRenderer;
 import org.waveprotocol.wave.client.wavepanel.render.PagingHandlerProxy;
@@ -81,6 +86,8 @@ import org.waveprotocol.wave.concurrencycontrol.channel.ViewChannelFactory;
 import org.waveprotocol.wave.concurrencycontrol.channel.ViewChannelImpl;
 import org.waveprotocol.wave.concurrencycontrol.channel.WaveViewService;
 import org.waveprotocol.wave.concurrencycontrol.common.UnsavedDataListenerFactory;
+import org.waveprotocol.wave.model.conversation.ConversationBlip;
+import org.waveprotocol.wave.model.conversation.ConversationThread;
 import org.waveprotocol.wave.model.conversation.ObservableConversationView;
 import org.waveprotocol.wave.model.conversation.WaveBasedConversationView;
 import org.waveprotocol.wave.model.document.indexed.IndexedDocumentImpl;
@@ -101,6 +108,7 @@ import org.waveprotocol.wave.model.supplement.SupplementedWaveImpl.DefaultFollow
 import org.waveprotocol.wave.model.supplement.WaveletBasedSupplement;
 import org.waveprotocol.wave.model.util.FuzzingBackOffScheduler;
 import org.waveprotocol.wave.model.util.FuzzingBackOffScheduler.CollectiveScheduler;
+import org.waveprotocol.wave.model.util.IdentityMap;
 import org.waveprotocol.wave.model.util.Scheduler;
 import org.waveprotocol.wave.model.version.HashedVersion;
 import org.waveprotocol.wave.model.version.HashedVersionFactory;
@@ -592,9 +600,22 @@ public interface StageTwo {
     }
 
     protected DomRenderer createRenderer() {
-      return FullDomWaveRendererImpl.create(getConversations(), getProfileManager(),
-          getBlipDetailer(), getViewIdMapper(), getBlipQueue(), getThreadReadStateMonitor(),
-          createViewFactories());
+      final BlipQueueRenderer pager = getBlipQueue();
+      DocRefRenderer docRenderer = new DocRefRenderer() {
+        @Override
+        public UiBuilder render(
+            ConversationBlip blip, IdentityMap<ConversationThread, UiBuilder> replies) {
+          // Documents are rendered blank, and filled in later when 
+          // they get paged in.
+          pager.add(blip);
+          return DocRefRenderer.EMPTY.render(blip, replies);
+        }
+      };
+      
+      RenderingRules<UiBuilder> rules = new FullDomRenderer(
+          getBlipDetailer(), docRenderer, getProfileManager(), 
+          getViewIdMapper(), createViewFactories(), getThreadReadStateMonitor());
+      return new HtmlDomRenderer(ReductionBasedRenderer.of(rules, getConversations()));
     }
 
     protected DiffController createDiffController() {

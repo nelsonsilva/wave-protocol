@@ -20,10 +20,13 @@ import com.google.common.base.Preconditions;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.CssResource;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.TextBox;
@@ -46,7 +49,11 @@ public class SearchWidget extends Composite implements SearchView, ChangeHandler
 
   interface Css extends CssResource {
     String self();
+    String search();
     String query();
+    String searchButton();
+    String searchButtonsPanel();
+    String searchboxContainer();
   }
 
   @UiField(provided = true)
@@ -61,6 +68,12 @@ public class SearchWidget extends Composite implements SearchView, ChangeHandler
 
   @UiField
   TextBox query;
+  @UiField
+  Button searchButtonShared;
+  @UiField
+  Button searchButtonAll;
+  @UiField
+  Button searchButtonInbox;
 
   private Listener listener;
 
@@ -105,8 +118,30 @@ public class SearchWidget extends Composite implements SearchView, ChangeHandler
     if (query.getValue() == null || query.getValue().isEmpty()) {
       query.setText(DEFAULT_QUERY);
     }
+    onQuery();
+  }
+  
+  private void onQuery() {
     if (listener != null) {
       listener.onQueryEntered();
     }
+  }
+  
+  @UiHandler("searchButtonShared")
+  public void onHandleShared(ClickEvent event) {
+    setQuery("with:@");
+    onQuery();
+  }
+  
+  @UiHandler("searchButtonAll")
+  public void onHandleAll(ClickEvent event) {
+    setQuery("");
+    onQuery();
+  }
+  
+  @UiHandler("searchButtonInbox")
+  public void onHandleInbox(ClickEvent event) {
+    setQuery("in:inbox");
+    onQuery();
   }
 }

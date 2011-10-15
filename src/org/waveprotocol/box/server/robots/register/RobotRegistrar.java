@@ -73,7 +73,7 @@ public interface RobotRegistrar {
    * @throws RobotRegistrationException if the id to re-register exist but is not a robot.
    * @throws PersistenceException if the persistence layer reports an error.
    */
-  public RobotAccountData reRegister(ParticipantId robotId, String location)
+  public RobotAccountData registerOrUpdate(ParticipantId robotId, String location)
       throws RobotRegistrationException, PersistenceException;
 
   /** Adds listener. */

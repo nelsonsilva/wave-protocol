@@ -43,7 +43,7 @@ public final class ParticipantsViewBuilder implements UiBuilder {
   final static int COLLAPSED_HEIGHT_PX = 51;
 
   /** Resources used by this widget. */
-  interface Resources extends ClientBundle {
+  public interface Resources extends ClientBundle {
     /** CSS */
     @Source("Participants.css")
     Css css();
@@ -58,7 +58,7 @@ public final class ParticipantsViewBuilder implements UiBuilder {
   }
 
   /** CSS for this widget. */
-  interface Css extends CssResource {
+  public interface Css extends CssResource {
     String participant();
     String panel();
     String flow();

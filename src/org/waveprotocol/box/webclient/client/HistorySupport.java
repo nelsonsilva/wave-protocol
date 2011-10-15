@@ -21,7 +21,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.History;
 
 import org.waveprotocol.box.webclient.client.events.WaveSelectionEvent;
-import org.waveprotocol.box.webclient.util.Log;
+import org.waveprotocol.box.webclient.client.events.Log;
 import org.waveprotocol.wave.model.id.ModernIdSerialiser;
 import org.waveprotocol.wave.model.waveref.InvalidWaveRefException;
 import org.waveprotocol.wave.model.waveref.WaveRef;

@@ -219,22 +219,7 @@ public class FileUtils {
    */
   public static void performDirectoryChecks(String dir, final String extension, String dirType,
       Log LOG) throws PersistenceException {
-    File baseDir = new File(dir);
-
-    // Make sure the dir exists.
-    if (!baseDir.exists()) {
-      // It doesn't so try and create it.
-      if (!baseDir.mkdirs()) {
-        throw new PersistenceException(String.format(
-            "Configured %s directory (%s) doesn't exist and could not be created!", dirType, dir));
-      }
-    }
-
-    // Make sure the dir is a directory.
-    if (!baseDir.isDirectory()) {
-      throw new PersistenceException(String.format(
-          "Configured %s path (%s) isn't a directory!", dirType, dir));
-    }
+    File baseDir = createDirIfNotExists(dir, dirType);
 
     // Make sure we can read files by trying to read one of the files.
     File[] files = baseDir.listFiles(new FilenameFilter() {
@@ -279,5 +264,35 @@ public class FileUtils {
       throw new PersistenceException(String.format(
           "Configured %s directory (%s) does not appear to be writable!", dirType, dir), e);
     }
+  }
+
+  /**
+   * Creates a directory if it doesn't exist.
+   *
+   * @param dir the directory location.
+   * @param dirType the directory type description (only useful for logs).
+   * @return the File directory (it's created if doesn't exist).
+   * @throws PersistenceException if the directory doesn't exist and cannot be
+   *         created or when the path described by <code>dir</code> is not a
+   *         directory.
+   */
+  public static File createDirIfNotExists(String dir, String dirType) throws PersistenceException {
+    File baseDir = new File(dir);
+
+    // Make sure the dir exists.
+    if (!baseDir.exists()) {
+      // It doesn't so try and create it.
+      if (!baseDir.mkdirs()) {
+        throw new PersistenceException(String.format(
+            "Configured %s directory (%s) doesn't exist and could not be created!", dirType, dir));
+      }
+    }
+
+    // Make sure the dir is a directory.
+    if (!baseDir.isDirectory()) {
+      throw new PersistenceException(String.format(
+          "Configured %s path (%s) isn't a directory!", dirType, dir));
+    }
+    return baseDir;
   }
 }

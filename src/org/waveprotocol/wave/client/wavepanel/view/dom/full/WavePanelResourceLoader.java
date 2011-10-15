@@ -19,6 +19,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.StyleInjector;
 
 import org.waveprotocol.wave.client.editor.EditorImpl;
+import org.waveprotocol.wave.client.wavepanel.view.dom.CssProvider;
 
 /**
  * This class is responsible for loading all the Css resources needed by the
@@ -27,7 +28,8 @@ import org.waveprotocol.wave.client.editor.EditorImpl;
  */
 public final class WavePanelResourceLoader {
 
-  private final static BlipViewBuilder.Resources blip = GWT.create(BlipViewBuilder.Resources.class);
+  private final static BlipViewBuilder.Resources blip = 
+      GWT.create(BlipViewBuilder.Resources.class);
   private final static CollapsibleBuilder.Resources collapsible =
       GWT.create(CollapsibleBuilder.Resources.class);
   private final static RootThreadViewBuilder.Resources rootThread =
@@ -35,11 +37,11 @@ public final class WavePanelResourceLoader {
   private final static ReplyBoxViewBuilder.Resources replyBox =
       GWT.create(ReplyBoxViewBuilder.Resources.class);
   private final static ContinuationIndicatorViewBuilder.Resources inlineContinuation =
-    GWT.create(ContinuationIndicatorViewBuilder.Resources.class);
+      GWT.create(ContinuationIndicatorViewBuilder.Resources.class);
   private final static TopConversationViewBuilder.Resources conversation =
       GWT.create(TopConversationViewBuilder.Resources.class);
   private final static ParticipantsViewBuilder.Resources participants =
-    GWT.create(ParticipantsViewBuilder.Resources.class);
+      GWT.create(ParticipantsViewBuilder.Resources.class);
 
   static {
     // Inject all CSS synchronously. CSS must be injected synchronously, so that
@@ -96,5 +98,16 @@ public final class WavePanelResourceLoader {
     // Static initializer loads all the wave panel views.
     // Need a few more:
     EditorImpl.init();
+  }
+  
+  /** @return The provider of just the CSS layer of styles. */
+  public static CssProvider createCssProvider() {
+    return new CssProvider(getBlip().css(), 
+        getCollapsible().css(), 
+        getContinuationIndicator().css(),
+        getConversation().css(),
+        getParticipants().css(),
+        getReplyBox().css(),
+        getRootThread().css());
   }
 }

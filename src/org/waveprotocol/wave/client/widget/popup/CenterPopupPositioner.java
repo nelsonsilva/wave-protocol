@@ -22,8 +22,8 @@ import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.dom.client.Style.Visibility;
 import com.google.gwt.user.client.ui.RootPanel;
 
-import org.waveprotocol.wave.client.scheduler.Scheduler;
 import org.waveprotocol.wave.client.scheduler.ScheduleCommand;
+import org.waveprotocol.wave.client.scheduler.Scheduler;
 
 /**
  * Show the popup in the center of the screen.
@@ -31,14 +31,21 @@ import org.waveprotocol.wave.client.scheduler.ScheduleCommand;
  */
 public class CenterPopupPositioner implements RelativePopupPositioner {
 
+  /** Default height offset in PX. */
+  private static final int MIN_OFFSET_HEIGHT_DEFAULT = 0;
+
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setPopupPositionAndMakeVisible(Element relative, final Element p) {
     ScheduleCommand.addCommand(new Scheduler.Task() {
+      @Override
       public void execute() {
         p.getStyle().setLeft((RootPanel.get().getOffsetWidth() - p.getOffsetWidth()) / 2, Unit.PX);
-        p.getStyle().setTop((RootPanel.get().getOffsetHeight() - p.getOffsetHeight()) / 2, Unit.PX);
+        int top = (RootPanel.get().getOffsetHeight() - p.getOffsetHeight()) / 2;
+        // Prevent negative top position.
+        p.getStyle().setTop(Math.max(top, MIN_OFFSET_HEIGHT_DEFAULT), Unit.PX);
         p.getStyle().setVisibility(Visibility.VISIBLE);
       }
     });

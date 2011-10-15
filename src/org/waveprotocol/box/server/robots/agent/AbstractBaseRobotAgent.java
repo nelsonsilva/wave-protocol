@@ -117,7 +117,7 @@ public abstract class AbstractBaseRobotAgent extends AbstractRobot {
     try {
       String location = "http://" + serverFrontendAddress + getRobotUri();
       // In order to re-register the agents if the server frontend address has changed.
-      robotRegistrar.reRegister(robotId, location);
+      robotRegistrar.registerOrUpdate(robotId, location);
 
     } catch (RobotRegistrationException e) {
       LOG.log(Level.SEVERE, "Failed to register the agent:" + getRobotId(), e);

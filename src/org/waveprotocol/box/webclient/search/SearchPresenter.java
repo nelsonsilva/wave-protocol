@@ -46,9 +46,13 @@ public final class SearchPresenter
     implements Search.Listener, SearchPanelView.Listener, SearchView.Listener, ProfileListener {
 
   /**
-   * Handles digest selection actions.
+   * Handles wave actions.
    */
-  public interface WaveSelectionHandler {
+  public interface WaveActionHandler {
+    /** Handles the wave creation action. */
+    void onCreateWave();
+
+    /** Handles a wave selection action. */
     void onWaveSelected(WaveId id);
   }
 
@@ -61,7 +65,7 @@ public final class SearchPresenter
   private final TimerService scheduler;
   private final Search search;
   private final SearchPanelView searchUi;
-  private final WaveSelectionHandler selectionHandler;
+  private final WaveActionHandler actionHandler;
 
   // Internal state
   private final IdentityMap<DigestView, Digest> digestUis = CollectionUtils.createIdentityMap();
@@ -96,11 +100,11 @@ public final class SearchPresenter
   SourcesEvents<ProfileListener> profiles;
 
   SearchPresenter(TimerService scheduler, Search search, SearchPanelView searchUi,
-      WaveSelectionHandler selectionHandler, SourcesEvents<ProfileListener> profiles) {
+      WaveActionHandler actionHandler, SourcesEvents<ProfileListener> profiles) {
     this.search = search;
     this.searchUi = searchUi;
     this.scheduler = scheduler;
-    this.selectionHandler = selectionHandler;
+    this.actionHandler = actionHandler;
     this.profiles = profiles;
   }
 
@@ -109,14 +113,14 @@ public final class SearchPresenter
    *
    * @param model model to present
    * @param view view to render into
-   * @param selectionHandler handler for selection actions
+   * @param actionHandler handler for actions
    * @param profileEventsDispatcher the dispatcher of profile events.
    */
   public static SearchPresenter create(
-      Search model, SearchPanelView view, WaveSelectionHandler selectionHandler,
+      Search model, SearchPanelView view, WaveActionHandler actionHandler,
       SourcesEvents<ProfileListener> profileEventsDispatcher) {
     SearchPresenter presenter = new SearchPresenter(
-        SchedulerInstance.getHighPriorityTimer(), model, view, selectionHandler,
+        SchedulerInstance.getHighPriorityTimer(), model, view, actionHandler,
         profileEventsDispatcher);
     presenter.init();
     return presenter;
@@ -160,7 +164,7 @@ public final class SearchPresenter
         group.addClickButton(), new ToolbarClickButton.Listener() {
           @Override
           public void onClicked() {
-            ClientEvents.get().fireEvent(WaveCreationEvent.CREATE_NEW_WAVE);
+            actionHandler.onCreateWave();
 
             // HACK(hearnden): To mimic live search, fire a search poll
             // reasonably soon (500ms) after creating a wave. This will be unnecessary
@@ -255,7 +259,7 @@ public final class SearchPresenter
    * Invokes the wave-select action on the currently selected digest.
    */
   private void openSelected() {
-    selectionHandler.onWaveSelected(digestUis.get(selected).getWaveId());
+    actionHandler.onWaveSelected(digestUis.get(selected).getWaveId());
   }
 
   @Override

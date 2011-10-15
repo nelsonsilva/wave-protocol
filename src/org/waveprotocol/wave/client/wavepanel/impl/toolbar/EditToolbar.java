@@ -41,6 +41,8 @@ import org.waveprotocol.wave.client.editor.toolbar.ParagraphTraversalController;
 import org.waveprotocol.wave.client.editor.toolbar.TextSelectionController;
 import org.waveprotocol.wave.client.editor.util.EditorAnnotationUtil;
 import org.waveprotocol.wave.client.gadget.GadgetXmlUtil;
+import org.waveprotocol.wave.client.wavepanel.impl.toolbar.gadget.GadgetSelectorWidget;
+import org.waveprotocol.wave.client.widget.popup.UniversalPopup;
 import org.waveprotocol.wave.client.widget.toolbar.SubmenuToolbarView;
 import org.waveprotocol.wave.client.widget.toolbar.ToolbarButtonViewBuilder;
 import org.waveprotocol.wave.client.widget.toolbar.ToolbarView;
@@ -68,10 +70,6 @@ public class EditToolbar {
   public interface ClickHandler {
     void onClicked(EditorContext context);
   }
-
-  /** The default gadget URL used in the insert-gadget prompt */
-  private static final String YES_NO_MAYBE_GADGET =
-      "http://wave-api.appspot.com/public/gadgets/areyouin/gadget.xml";
 
   /**
    * Container for a font family.
@@ -289,24 +287,38 @@ public class EditToolbar {
         .setIcon(css.insertGadget())
         .applyTo(toolbar.addClickButton(), new ToolbarClickButton.Listener() {
           @Override public void onClicked() {
-            int from = -1;
-            FocusedRange focusedRange = editor.getSelectionHelper().getSelectionRange();
-            if (focusedRange != null) {
-              from = focusedRange.getFocus();
-            }
-            String url = Window.prompt("Gadget URL", YES_NO_MAYBE_GADGET);
-            if (url != null && !url.isEmpty()) {
-              XmlStringBuilder xml = GadgetXmlUtil.constructXml(url, "", user.getAddress());
-              if (from != -1) {
-                CMutableDocument doc = editor.getDocument();
-                Point<ContentNode> point = doc.locate(from);
-                doc.insertXml(point, xml);
-              } else {
-                LineContainers.appendLine(editor.getDocument(), xml);
+            GadgetSelectorWidget selector = new GadgetSelectorWidget();
+            selector.addFeaturedOptions();
+            final UniversalPopup popup = selector.showInPopup();
+            selector.setListener(new GadgetSelectorWidget.Listener() {
+              @Override public void onSelect(String url) {
+                insertGadget(url);
+                popup.hide();
               }
-            }
+            });
           }
         });
+  }
+
+  private void insertGadget(String url) {
+    int from = -1;
+    FocusedRange focusedRange = editor.getSelectionHelper().getSelectionRange();
+    if (focusedRange != null) {
+      from = focusedRange.getFocus();
+    }
+    if (url != null && !url.isEmpty()) {
+      XmlStringBuilder xml = GadgetXmlUtil.constructXml(url, "", user.getAddress());
+      CMutableDocument document = editor.getDocument();
+      if (document == null) {
+        return;
+      }
+      if (from != -1) {
+        Point<ContentNode> point = document.locate(from);
+        document.insertXml(point, xml);
+      } else {
+        LineContainers.appendLine(document, xml);
+      }
+    }
   }
 
   private void createInsertLinkButton(ToolbarView toolbar) {

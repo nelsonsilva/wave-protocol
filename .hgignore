@@ -14,6 +14,7 @@ _accounts
 _attachments
 _certificates
 _deltas
+_sessions
 bin
 build
 build-proto.properties

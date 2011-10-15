@@ -42,6 +42,7 @@ import com.glines.socketio.server.transport.FlashSocketTransport;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.ResourceCollection;
@@ -52,6 +53,7 @@ import org.waveprotocol.box.common.comms.WaveClientRpc.ProtocolAuthenticate;
 import org.waveprotocol.box.common.comms.WaveClientRpc.ProtocolAuthenticationResult;
 import org.waveprotocol.box.server.CoreSettings;
 import org.waveprotocol.box.server.authentication.SessionManager;
+import org.waveprotocol.box.server.persistence.file.FileUtils;
 import org.waveprotocol.box.server.util.NetUtils;
 import org.waveprotocol.wave.model.util.Pair;
 import org.waveprotocol.wave.model.wave.ParticipantId;
@@ -100,6 +102,8 @@ public class ServerRpcProvider {
 
   // List of webApp source directories ("./war", etc)
   private final String[] resourceBases;
+
+  private final String sessionStoreDir;
 
   /**
    * Internal, static container class for any specific registered service
@@ -288,13 +292,14 @@ public class ServerRpcProvider {
    */
   public ServerRpcProvider(InetSocketAddress[] httpAddresses, Integer flashsocketPolicyPort,
       String[] resourceBases, ExecutorService threadPool, SessionManager sessionManager,
-      org.eclipse.jetty.server.SessionManager jettySessionManager) {
+      org.eclipse.jetty.server.SessionManager jettySessionManager, String sessionStoreDir) {
     this.httpAddresses = httpAddresses;
     this.flashsocketPolicyPort = flashsocketPolicyPort;
     this.resourceBases = resourceBases;
     this.threadPool = threadPool;
     this.sessionManager = sessionManager;
     this.jettySessionManager = jettySessionManager;
+    this.sessionStoreDir = sessionStoreDir;
   }
 
   /**
@@ -302,18 +307,18 @@ public class ServerRpcProvider {
    */
   public ServerRpcProvider(InetSocketAddress[] httpAddresses, Integer flashsocketPolicyPort,
       String[] resourceBases, SessionManager sessionManager,
-      org.eclipse.jetty.server.SessionManager jettySessionManager) {
+      org.eclipse.jetty.server.SessionManager jettySessionManager, String sessionStoreDir) {
     this(httpAddresses, flashsocketPolicyPort, resourceBases, Executors.newCachedThreadPool(),
-        sessionManager, jettySessionManager);
+        sessionManager, jettySessionManager, sessionStoreDir);
   }
 
   @Inject
   public ServerRpcProvider(@Named(CoreSettings.HTTP_FRONTEND_ADDRESSES) List<String> httpAddresses,
       @Named(CoreSettings.FLASHSOCKET_POLICY_PORT) Integer flashsocketPolicyPort,
       @Named(CoreSettings.RESOURCE_BASES) List<String> resourceBases,
-      SessionManager sessionManager, org.eclipse.jetty.server.SessionManager jettySessionManager) {
+      SessionManager sessionManager, org.eclipse.jetty.server.SessionManager jettySessionManager, @Named(CoreSettings.SESSIONS_STORE_DIRECTORY) String sessionStoreDir) {
     this(parseAddressList(httpAddresses), flashsocketPolicyPort, resourceBases
-        .toArray(new String[0]), sessionManager, jettySessionManager);
+        .toArray(new String[0]), sessionManager, jettySessionManager, sessionStoreDir);
   }
 
   public void startWebSocketServer(final Injector injector) {
@@ -358,6 +363,7 @@ public class ServerRpcProvider {
       httpServer.setHandler(context);
 
       httpServer.start();
+      restoreSessions();
 
     } catch (Exception e) { // yes, .start() throws "Exception"
       LOG.severe("Fatal error starting http server.", e);
@@ -366,6 +372,17 @@ public class ServerRpcProvider {
     LOG.fine("WebSocket server running.");
   }
 
+  private void restoreSessions() {
+    try {
+      HashSessionManager hashSessionManager = (HashSessionManager) jettySessionManager;
+      hashSessionManager.setStoreDirectory(FileUtils.createDirIfNotExists(sessionStoreDir,
+          "Session persistence"));
+      hashSessionManager.setSavePeriod(60);
+      hashSessionManager.restoreSessions();
+    } catch (Exception e) {
+      LOG.warning("Cannot restore sessions");
+    }
+  }
   public void addWebSocketServlets() {
     // Servlet where the websocket connection is served from.
     ServletHolder wsholder = addServlet("/socket", WaveWebSocketServlet.class);

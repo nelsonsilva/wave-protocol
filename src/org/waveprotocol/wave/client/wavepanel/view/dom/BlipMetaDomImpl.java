@@ -31,6 +31,7 @@ import org.waveprotocol.wave.client.wavepanel.view.View.Type;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipMetaViewBuilder;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipMetaViewBuilder.Components;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipViewBuilder;
+import org.waveprotocol.wave.client.wavepanel.view.dom.full.CollapsibleBuilder;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.TypeCodes;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.WavePanelResourceLoader;
 import org.waveprotocol.wave.model.util.Pair;
@@ -55,13 +56,14 @@ public final class BlipMetaDomImpl implements DomView, IntrinsicBlipMetaView {
   private static final String INLINE_LOCATOR_PROPERTY = "inlineSequence";
   public static final String INLINE_LOCATOR_ATTRIBUTE = "inline";
 
-  private final static BlipViewBuilder.Css CSS = WavePanelResourceLoader.getBlip().css();
-
   /** The DOM element of this view. */
   private final Element self;
 
   /** The HTML id of {@code self}. */
   private final String id;
+  
+  /** The CSS classes used to manipulate style based on state changes. */
+  private final BlipViewBuilder.Css css;
 
   //
   // UI fields for both intrinsic and structural elements.
@@ -77,13 +79,14 @@ public final class BlipMetaDomImpl implements DomView, IntrinsicBlipMetaView {
 
   private StringSequence inlineLocators;
 
-  BlipMetaDomImpl(Element self, String id) {
+  BlipMetaDomImpl(Element self, String id, BlipViewBuilder.Css css) {
     this.self = self;
     this.id = id;
+    this.css = css;
   }
 
-  public static BlipMetaDomImpl of(Element e) {
-    return new BlipMetaDomImpl(e, e.getId());
+  public static BlipMetaDomImpl of(Element e, BlipViewBuilder.Css css) {
+    return new BlipMetaDomImpl(e, e.getId(), css);
   }
 
   @Override
@@ -106,9 +109,9 @@ public final class BlipMetaDomImpl implements DomView, IntrinsicBlipMetaView {
     // The entire set of class names is always replaced, because
     // server-generated and client-generated classes do not mix.
     if (read) {
-      getMetabar().setClassName(CSS.metabar() + " " + CSS.read());
+      getMetabar().setClassName(css.metabar() + " " + css.read());
     } else {
-      getMetabar().setClassName(CSS.metabar() + " " + CSS.unread());
+      getMetabar().setClassName(css.metabar() + " " + css.unread());
     }
   }
 
@@ -162,7 +165,7 @@ public final class BlipMetaDomImpl implements DomView, IntrinsicBlipMetaView {
     while (e != null) {
       if (e.hasAttribute(KIND_ATTRIBUTE)
           && e.getAttribute(KIND_ATTRIBUTE).equals(TypeCodes.kind(Type.MENU_ITEM))) {
-        BlipMenuItemDomImpl item = BlipMenuItemDomImpl.of(e);
+        BlipMenuItemDomImpl item = BlipMenuItemDomImpl.of(e, css);
         MenuOption option = item.getOption();
         options.put(option, item);
         if (item.isSelected()) {
@@ -181,7 +184,7 @@ public final class BlipMetaDomImpl implements DomView, IntrinsicBlipMetaView {
    * @param selected which options, if any, are to be selected.
    */
   private void setMenuState(Set<MenuOption> options, Set<MenuOption> selected) {
-    UiBuilder builder = BlipMetaViewBuilder.menuBuilder(options, selected, CSS);
+    UiBuilder builder = BlipMetaViewBuilder.menuBuilder(options, selected, css);
     SafeHtmlBuilder  out = new SafeHtmlBuilder();
     builder.outputHtml(out);
     getMenu().setInnerHTML(out.toSafeHtml().asString());

@@ -25,24 +25,25 @@ import org.waveprotocol.wave.client.wavepanel.view.IntrinsicBlipMenuItemView;
 import org.waveprotocol.wave.client.wavepanel.view.IntrinsicBlipMetaView.MenuOption;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipMetaViewBuilder;
 import org.waveprotocol.wave.client.wavepanel.view.dom.full.BlipViewBuilder;
-import org.waveprotocol.wave.client.wavepanel.view.dom.full.WavePanelResourceLoader;
 
 /**
  * A blip menu item.
  *
  */
 public final class BlipMenuItemDomImpl implements DomView, IntrinsicBlipMenuItemView {
-  private final static BlipViewBuilder.Css CSS = WavePanelResourceLoader.getBlip().css();
-
   /** The DOM element of this view. */
   private final Element self;
 
-  BlipMenuItemDomImpl(Element self) {
+  /** The CSS classes used to manipulate style based on state changes. */
+  private final BlipViewBuilder.Css css;
+  
+  BlipMenuItemDomImpl(Element self, BlipViewBuilder.Css css) {
     this.self = self;
+    this.css = css;
   }
 
-  public static BlipMenuItemDomImpl of(Element e) {
-    return new BlipMenuItemDomImpl(e);
+  public static BlipMenuItemDomImpl of(Element e, BlipViewBuilder.Css css) {
+    return new BlipMenuItemDomImpl(e, css);
   }
 
   @Override
@@ -62,13 +63,13 @@ public final class BlipMenuItemDomImpl implements DomView, IntrinsicBlipMenuItem
   @Override
   public void select() {
     self.setAttribute(OPTION_SELECTED_ATTRIBUTE, "s");
-    self.setClassName(CSS.menuOption() + " " + CSS.menuOptionSelected());
+    self.setClassName(css.menuOption() + " " + css.menuOptionSelected());
   }
 
   @Override
   public void deselect() {
     self.removeAttribute(OPTION_SELECTED_ATTRIBUTE);
-    self.setClassName(CSS.menuOption());
+    self.setClassName(css.menuOption());
   }
 
   @Override

@@ -81,7 +81,7 @@ final class UserManager {
    * Receives notification that the specified wavelet has been committed at the
    * specified version.
    */
-  public void onCommit(WaveletName waveletName, HashedVersion version, String channelId) {
+  public void onCommit(WaveletName waveletName, HashedVersion version) {
     Preconditions.checkNotNull(waveletName);
     Preconditions.checkNotNull(version);
     List<WaveViewSubscription> listeners = matchSubscriptions(waveletName);
