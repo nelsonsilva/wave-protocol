@@ -19,6 +19,7 @@ package org.waveprotocol.box.webclient.profile;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -48,7 +49,7 @@ public final class FetchProfilesBuilder {
   private static final LoggerBundle LOG = new DomLogger("FetchProfilesBuilder");
 
   /** The base profile URL. */
-  private static final String SEARCH_URL_BASE = "/profile";
+  private static final String SEARCH_URL_BASE = GWT.getHostPageBaseURL() + "profile";
 
   /** Holds profile request data. */
   private ProfileRequest profileRequest;

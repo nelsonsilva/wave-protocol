@@ -18,6 +18,7 @@
 package org.waveprotocol.box.webclient.search;
 
 import com.google.common.base.Preconditions;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -50,7 +51,7 @@ public final class JsoSearchBuilderImpl implements SearchBuilder {
   private static final LoggerBundle LOG = new DomLogger("SearchBuilder");
 
   /** The base search URL. */
-  private static final String SEARCH_URL_BASE = "/search";
+  private static final String SEARCH_URL_BASE = GWT.getHostPageBaseURL() + "search";
 
   /** Holds search request data. */
   private SearchRequest searchRequest;
