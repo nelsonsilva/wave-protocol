@@ -276,7 +276,7 @@
       ======-->
 
   <target name="test" depends="compile-tests" description=
-    "Runs all the unit tests in the project excluding external persistence">
+    "Runs all the unit tests in the project excluding external persistence" unless="skip.test">
     <!-- EMMA disabled due to incompatibility with EventSerializer -->
     <!-- Tests are run in a single new VM, when forkmode is set to once -->
     <runtests forkmode="once" coverage="true">
@@ -525,6 +525,10 @@
   <target name="dist" depends="test, dist-libraries, dist-server, 
       dist-client-console, dist-robot-client-api, compile-gwt"
       description="Compiles, tests and assembles artifacts">
+  </target>
+
+  <target name="dist-webclient" description="Packages the webclient in a war"> <!--depends="compile-gwt"-->
+	<war destfile="${dist.dir}/waveinabox-webclient-0.3.war" basedir="war" needxmlfile="false"/>
   </target>
 
   <target name="dist-proto" depends="compile-proto" description="Builds the proto jar">
