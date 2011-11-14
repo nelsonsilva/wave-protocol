@@ -347,6 +347,7 @@ public class Log {
     }
 
     LogRecord record = new MyLogRecord(level, contextualiseMessage(msg), t);
+    record.setLoggerName(logger.getName());
     logger.log(record);
   }
 
